@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>IAM 高會</title>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#090910;
+  --bg2:#0f0f1a;
+  --bg3:#141420;
+  --card:#1a1a2e;
+  --card2:#20203a;
+  --card3:#252545;
+  --accent:#a78bfa;
+  --accent2:#7c3aed;
+  --accent3:#6d28d9;
+  --pink:#f472b6;
+  --pink2:#ec4899;
+  --gold:#fbbf24;
+  --green:#34d399;
+  --text:#f0f0ff;
+  --text2:#a0a0c0;
+  --text3:#5a5a7a;
+  --border:#252540;
+  --border2:#353560;
+  --glow:rgba(167,139,250,0.15);
+  --glowb:rgba(167,139,250,0.08);
+}
+html,body{height:100%;background:var(--bg);font-family:'Noto Sans TC',sans-serif;color:var(--text);overflow:hidden;}
+#root{height:100%;display:flex;flex-direction:column;align-items:center;background:var(--bg);}
+.shell{width:100%;max-width:480px;height:100%;display:flex;flex-direction:column;background:var(--bg);position:relative;}
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+input,textarea,button{font-family:'Noto Sans TC',sans-serif;}
+input::placeholder,textarea::placeholder{color:var(--text3);}
+.fade{animation:fadeUp .25s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.pulse{animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.glow-text{background:linear-gradient(135deg,var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.card{background:var(--card);border-radius:18px;border:1px solid var(--border);}
+.btn-primary{background:linear-gradient(135deg,var(--accent3),var(--accent));border:none;border-radius:14px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;padding:14px;width:100%;transition:opacity .15s;}
+.btn-primary:hover{opacity:.9;}
+.btn-primary:disabled{background:var(--card3);cursor:default;opacity:1;}
+.btn-ghost{background:transparent;border:1px solid var(--border2);border-radius:14px;color:var(--text2);font-size:14px;cursor:pointer;padding:13px;width:100%;}
+.input{background:var(--card);border:1px solid var(--border2);border-radius:14px;color:var(--text);font-size:15px;outline:none;padding:13px 16px;width:100%;transition:border-color .15s;}
+.input:focus{border-color:var(--accent);}
+.badge-premium{background:rgba(124,58,237,.2);border:1px solid rgba(167,139,250,.35);border-radius:20px;padding:3px 10px;font-size:10px;color:var(--accent);}
+.nav-btn{flex:1;padding:10px 0 6px;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:color .15s;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback, useMemo } = React;
+
+/* ══════════════════════════════════════════════
+   DB  (localStorage, Supabase-ready structure)
+══════════════════════════════════════════════ */
+const DB = {
+  get(k, def) {
+    const d = def !== undefined ? def : [];
+    try { const v = localStorage.getItem('iam_' + k); return v !== null ? JSON.parse(v) : d; }
+    catch { return d; }
+  },
+  set(k, v) { try { localStorage.setItem('iam_' + k, JSON.stringify(v)); } catch {} },
+  push(k, item) { const a = DB.get(k, []); a.unshift(item); DB.set(k, a); return item; },
+};
+
+/* seed */
+(function seed() {
+  if (DB.get('seeded', false)) return;
+  DB.set('users', [{
+    id: 'star-001', username: 'xiaohua', password: '0801',
+    display_name: '小花 🌸', role: 'star',
+    avatar: 'https://api.dicebear.com/8.x/notionists/svg?seed=xiaohuastar&backgroundColor=7c3aed',
+    cover: 'https://picsum.photos/seed/iam-cover/900/300',
+    bio: 'IAM 主理人 ✨ 每天都在這裡陪著你們\n喜歡音樂、旅行、還有每一個你 💜',
+    followers: 248600, following: 12, is_premium: true, joined: '2024-01-01',
+    links: ['@xiaohua_official']
+  }]);
+  DB.set('groups', [{ id: 'iam', name: 'IAM', star_id: 'star-001', members: 248600, unlocked_users: [] }]);
+  DB.set('posts', [
+    { id: 'p1', author_id: 'star-001', group_id: 'iam', content: '大家好！歡迎來到 IAM 高會 💜\n\n這裡是我們最親密的空間，我會在這裡分享最私密的日常、幕後花絮、還有只有高會才能看到的內容！\n\n謝謝你們一直以來的支持，我愛你們 🌸', media_url: '', media_type: 'text', created_at: new Date(Date.now() - 2 * 3600000).toISOString(), likes: ['u1', 'u2', 'u3'], comments: [{ id: 'c1', user_id: 'u1', user_name: '星星粉絲', user_avatar: '', text: '哇！好開心終於加入高會了 💜', time: Date.now() - 3600000 }, { id: 'c2', user_id: 'u2', user_name: 'Amy', user_avatar: '', text: '小花你好美！！', time: Date.now() - 1800000 }] },
+    { id: 'p2', author_id: 'star-001', group_id: 'iam', content: '今天的拍攝現場花絮 📸\n\n這次的服裝超級美！大家猜猜是什麼主題？', media_url: 'https://picsum.photos/seed/iam-post2/600/800', media_type: 'image', created_at: new Date(Date.now() - 26 * 3600000).toISOString(), likes: ['u1', 'u2'], comments: [{ id: 'c3', user_id: 'u3', user_name: '桃子', user_avatar: '', text: '太美了！！！', time: Date.now() - 20 * 3600000 }] },
+    { id: 'p3', author_id: 'star-001', group_id: 'iam', content: '✨ 高會限定 ✨\n\n新歌的故事是這樣開始的…\n\n那天我坐在窗邊，看著窗外的雨，突然靈感就來了。整首歌我寫了三天，每一句歌詞都是真實的心情。\n\n你們最近還好嗎？', media_url: '', media_type: 'text', created_at: new Date(Date.now() - 3 * 86400000).toISOString(), likes: [], comments: [] },
+    { id: 'p4', author_id: 'star-001', group_id: 'iam', content: '週末小確幸 ☕️', media_url: 'https://picsum.photos/seed/iam-post4/600/600', media_type: 'image', created_at: new Date(Date.now() - 5 * 86400000).toISOString(), likes: ['u1'], comments: [] },
+  ]);
+  DB.set('bubbles', {});
+  DB.set('seeded', true);
+})();
+
+/* helpers */
+const fmt = n => !n && n !== 0 ? '0' : n >= 10000 ? (n / 10000).toFixed(1) + '萬' : n.toLocaleString();
+const timeAgo = iso => {
+  const s = (Date.now() - new Date(iso).getTime()) / 1000;
+  if (s < 60) return '剛剛';
+  if (s < 3600) return Math.floor(s / 60) + '分鐘前';
+  if (s < 86400) return Math.floor(s / 3600) + '小時前';
+  if (s < 7 * 86400) return Math.floor(s / 86400) + '天前';
+  return new Date(iso).toLocaleDateString('zh-TW', { month: 'numeric', day: 'numeric' });
+};
+const uid = () => Math.random().toString(36).slice(2, 10);
+
+/* ══════════════════════════════════════════════
+   ATOMS
+══════════════════════════════════════════════ */
+function Avatar({ src, name, size = 40, ring = false, online = false }) {
+  const [err, setErr] = useState(false);
+  return (
+    <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
+      <div style={{ width: size, height: size, borderRadius: '50%', overflow: 'hidden', background: 'var(--card3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: size * .38, fontWeight: 700, color: 'var(--accent)', border: ring ? '2px solid var(--accent)' : '2px solid transparent' }}>
+        {src && !err ? <img src={src} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={() => setErr(true)} alt="" /> : (name || '?').slice(0, 1)}
+      </div>
+      {online && <div style={{ position: 'absolute', bottom: 1, right: 1, width: size * .25, height: size * .25, borderRadius: '50%', background: 'var(--green)', border: '2px solid var(--bg)' }} />}
+    </div>
+  );
+}
+
+function Spinner() {
+  return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
+    <div style={{ width: 28, height: 28, borderRadius: '50%', border: '3px solid var(--border2)', borderTopColor: 'var(--accent)', animation: 'spin .7s linear infinite' }} />
+    <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+  </div>;
+}
+
+function Toast({ msg, onDone }) {
+  useEffect(() => { const t = setTimeout(onDone, 2200); return () => clearTimeout(t); }, []);
+  return (
+    <div style={{ position: 'fixed', bottom: 90, left: '50%', transform: 'translateX(-50%)', background: 'var(--card2)', border: '1px solid var(--border2)', borderRadius: 24, padding: '10px 22px', fontSize: 13, color: 'var(--text)', zIndex: 999, whiteSpace: 'nowrap', boxShadow: '0 4px 24px rgba(0,0,0,.4)', animation: 'fadeUp .2s ease' }}>
+      {msg}
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════
+   TOP BAR
+══════════════════════════════════════════════ */
+function TopBar({ isPremium, bubbleCount = 0 }) {
+  const [time, setTime] = useState('');
+  useEffect(() => {
+    const tick = () => setTime(new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' }));
+    tick(); const t = setInterval(tick, 10000); return () => clearInterval(t);
+  }, []);
+  return (
+    <div style={{ background: 'var(--bg2)', padding: '11px 18px 9px', flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)' }}>
+      <div style={{ fontSize: 17, fontWeight: 900, letterSpacing: 4, color: 'var(--accent)' }}>IAM</div>
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+        {isPremium && <span className="badge-premium">💜 高會</span>}
+        {bubbleCount > 0 && <div style={{ background: 'var(--pink2)', borderRadius: 10, padding: '1px 7px', fontSize: 10, color: '#fff', fontWeight: 700 }}>{bubbleCount}</div>}
+        <div style={{ fontSize: 12, color: 'var(--text3)' }}>{time}</div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════
+   TAB BAR
+══════════════════════════════════════════════ */
+function TabBar({ tab, setTab, isStar, bubbleCount }) {
+  const tabs = isStar
+    ? [{ id: 'home', icon: '🏠', label: '動態' }, { id: 'bubble', icon: '🫧', label: '泡泡' }, { id: 'post', icon: '✦', label: '發布' }, { id: 'profile', icon: '◎', label: '我的' }]
+    : [{ id: 'home', icon: '🏠', label: '動態' }, { id: 'bubble', icon: '🫧', label: '泡泡' }, { id: 'explore', icon: '✦', label: '探索' }, { id: 'profile', icon: '◎', label: '我的' }];
+  return (
+    <div style={{ display: 'flex', background: 'var(--bg2)', borderTop: '1px solid var(--border)', flexShrink: 0 }}>
+      {tabs.map(t => {
+        const active = tab === t.id;
+        const hasBadge = t.id === 'bubble' && bubbleCount > 0;
+        return (
+          <button key={t.id} className="nav-btn" onClick={() => setTab(t.id)}
+            style={{ color: active ? 'var(--accent)' : 'var(--text3)' }}>
+            <div style={{ position: 'relative' }}>
+              <span style={{ fontSize: t.id === 'post' ? 22 : 19, lineHeight: 1 }}>{t.icon}</span>
+              {hasBadge && <div style={{ position: 'absolute', top: -3, right: -5, width: 8, height: 8, borderRadius: '50%', background: 'var(--pink2)', border: '1.5px solid var(--bg2)' }} />}
+            </div>
+            <span style={{ fontSize: 10, letterSpacing: .3, fontWeight: active ? 700 : 400 }}>{t.label}</span>
+            {active && <div style={{ width: 18, height: 2, borderRadius: 1, background: 'var(--accent)', marginTop: 1 }} />}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════
+   LOGIN
+══════════════════════════════════════════════ */
+function LoginScreen({ onLogin, onRegister }) {
+  const [u, setU] = useState('');
+  const [p, setP] = useState('');
+  const [err, setErr] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const submit = () => {
+    if (!u.trim() || !p.trim()) { setErr('請填寫帳號和密碼'); return; }
+    setLoading(true); setErr('');
+    setTimeout(() => {
+      const users = DB.get('users', []);
+      if (u === 'xiaohua' && p === '0801') {
+        const star = users.find(x => x.username === 'xiaohua');
+        if (star) { onLogin(star); return; }
+      }
+      const found = users.find(x => x.username === u.trim() && x.password === p);
+      if (found) { onLogin(found); return; }
+      setErr('帳號或密碼錯誤'); setLoading(false);
+    }, 700);
+  };
+
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 28px', background: 'radial-gradient(ellipse 80% 60% at 50% 0%, #1e0a42 0%, var(--bg) 65%)' }}>
+      {/* Logo area */}
+      <div style={{ marginBottom: 56, textAlign: 'center' }}>
+        <div style={{ fontSize: 68, fontWeight: 900, letterSpacing: -4, lineHeight: 1, color: 'var(--accent)', textShadow: '0 0 60px rgba(167,139,250,.45)' }}>IAM</div>
+        <div style={{ fontSize: 11, color: 'var(--text3)', letterSpacing: 6, marginTop: 8 }}>FAN CLUB</div>
+        <div style={{ width: 48, height: 2, background: 'linear-gradient(90deg,var(--accent2),var(--accent))', margin: '14px auto 0', borderRadius: 1 }} />
+      </div>
+
+      <div style={{ width: '100%', maxWidth: 330, display: 'flex', flexDirection: 'column', gap: 11 }}>
+        <input className="input" value={u} onChange={e => setU(e.target.value)} onKeyDown={e => e.key === 'Enter' && submit()} placeholder="帳號" />
+        <input className="input" type="password" value={p} onChange={e => setP(e.target.value)} onKeyDown={e => e.key === 'Enter' && submit()} placeholder="密碼" />
+        {err && <div style={{ color: '#f87171', fontSize: 13, textAlign: 'center' }}>{err}</div>}
+        <button className="btn-primary" onClick={submit} disabled={loading} style={{ marginTop: 4 }}>
+          {loading ? '登入中...' : '登入'}
+        </button>
+        <button className="btn-ghost" onClick={onRegister}>建立新帳號</button>
+      </div>
+
+      <div style={{ marginTop: 40, color: 'var(--text3)', fontSize: 12, textAlign: 'center', lineHeight: 1.8 }}>
+        加入 IAM，與小花最親密的空間 💜<br />
+        {fmt(248600)} 位粉絲已加入
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════
+   REGISTER
+══════════════════════════════════════════════ */
+function RegisterScreen({ onBack, onDone }) {
+  const [form, setForm] = useState({ username: '', password: '', display_name: '', bio: '' });
+  const [err, setErr] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const submit = () => {
+    if (!form.username.trim() || !form.password || !form.display_name.trim()) { setErr('請填寫標示 * 的必要欄位'); return; }
+    if (form.username.length < 3) { setErr('帳號至少需要 3 個字元'); return; }
+    if (!/^[a-zA-Z0-9_]+$/.test(form.username)) { setErr('帳號只能包含英文、數字、底線'); return; }
+    if (form.password.length < 4) { setErr('密碼至少需要 4 個字元'); return; }
+    const users = DB.get('users', []);
+    if (users.find(u => u.username === form.username.trim())) { setErr('此帳號已被使用'); return; }
+    setLoading(true);
+    setTimeout(() => {
+      const nu = {
+        id: 'u-' + uid(), username: form.username.trim(), password: form.password,
+        display_name: form.display_name.trim(), bio: form.bio.trim(), role: 'fan',
+        avatar: 'https://api.dicebear.com/8.x/notionists/svg?seed=' + form.username + '&backgroundColor=7c3aed',
+        cover: '', followers: 0, following: 1, is_premium: false, joined: new Date().toISOString()
+      };
+      users.push(nu); DB.set('users', users);
+      onDone(nu);
+    }, 600);
+  };
+
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 28px', background: 'radial-gradient(ellipse 80% 60% at 50% 0%, #1e0a42 0%, var(--bg) 65%)' }}>
+      <div style={{ marginBottom: 36, textAlign: 'center' }}>
+        <div style={{ fontSize: 44, fontWeight: 900, letterSpacing: -2, color: 'var(--accent)', lineHeight: 1 }}>IAM</div>
+        <div style={{ fontSize: 14, color: 'var(--text2)', marginTop: 10 }}>建立你的帳號</div>
+      </div>
+      <div style={{ width: '100%', maxWidth: 330, display: 'flex', flexDirection: 'column', gap: 11 }}>
+        <input className="input" value={form.display_name} onChange={e => setForm({ ...form, display_name: e.target.value })} placeholder="暱稱 *" />
+        <input className="input" value={form.username} onChange={e => setForm({ ...form, username: e.target.value })} placeholder="帳號 * （英數字，3字以上）" />
+        <input className="input" type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} placeholder="密碼 * （4字以上）" onKeyDown={e => e.key === 'Enter' && submit()} />
+        <input className="input" value={form.bio} onChange={e => setForm({ ...form, bio: e.target.value })} placeholder="個人簡介（選填）" />
+        {err && <div style={{ color: '#f87171', fontSize: 13, textAlign: 'center' }}>{err}</div>}
+        <button className="btn-primary" onClick={submit} disabled={loading} style={{ marginTop: 4 }}>
+          {loading ? '建立中...' : '建立帳號'}
+        </button>
+        <button style={{ background: 'none', border: 'none', color: 'var(--text3)', fontSize: 14, cursor: 'pointer', padding: '10px 0' }} onClick={onBack}>
+          ← 返回登入
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════
+   UNLOCK / PAYMENT
+══════════════════════════════════════════════ */
+function UnlockScreen({ onPay, onBack }) {
+  const [step, setStep] = useState('info');
+  const [card, setCard] = useState({ num: '', name: '', exp: '', cvv: '' });
+  const [loading, setLoading] = useState(false);
+
+  if (step === 'success') return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 32px', background: 'radial-gradient(ellipse 80% 60% at 50% 30%, #1e0a42 0%, var(--bg) 70%)' }} className="fade">
+      <div style={{ width: 90, height: 90, borderRadius: '50%', background: 'var(--glow)', border: '2px solid var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 44, marginBottom: 24 }}>🎉</div>
+      <div style={{ fontSize: 26, fontWeight: 800, color: 'var(--accent)', marginBottom: 10, textAlign: 'center' }}>歡迎加入 IAM！</div>
+      <div style={{ color: 'var(--text2)', marginBottom: 40, textAlign: 'center', lineHeight: 1.8, fontSize: 15 }}>
+        你已成功解鎖高會 💜<br />現在可以看到所有限定內容了
+      </div>
+      <button className="btn-primary" onClick={onPay} style={{ maxWidth: 260 }}>進入高會 →</button>
+    </div>
+  );
+
+  if (step === 'pay') return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }} className="fade">
+      <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border)', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 14 }}>
+        <button onClick={() => setStep('info')} style={{ background: 'none', border: 'none', color: 'var(--text2)', cursor: 'pointer', fontSize: 22 }}>←</button>
+        <div style={{ fontWeight: 700, fontSize: 16 }}>確認付款</div>
+      </div>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '18px 18px' }}>
+        {/* Order summary */}
+        <div className="card" style={{ padding: '18px 20px', marginBottom: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 14, borderBottom: '1px solid var(--border)' }}>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 16 }}>IAM 高會會員</div>
+              <div style={{ color: 'var(--text3)', fontSize: 12, marginTop: 3 }}>永久解鎖 · 一次付費</div>
+            </div>
+            <div style={{ fontSize: 26, fontWeight: 900, color: 'var(--accent)' }}>NT$500</div>
+          </div>
+          <div style={{ paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {['解鎖所有限定貼文', '泡泡一對一聊天', '優先留言顯示', '專屬高會徽章頭框'].map(f => (
+              <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: 'var(--text2)' }}>
+                <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'rgba(167,139,250,.15)', border: '1px solid var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: 'var(--accent)', flexShrink: 0 }}>✓</div>
+                {f}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Card form */}
+        <div className="card" style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 11, marginBottom: 14 }}>
+          <div style={{ fontSize: 13, color: 'var(--text3)', fontWeight: 500 }}>信用卡資訊</div>
+          {[['num', '卡號　1234 5678 9012 3456', 'text'], ['name', '持卡人姓名', 'text'], ['exp', '有效期限　MM / YY', 'text'], ['cvv', '安全碼 CVV', 'password']].map(([k, ph, type]) => (
+            <input key={k} type={type} className="input" value={card[k]} placeholder={ph} onChange={e => setCard({ ...card, [k]: e.target.value })} />
+          ))}
+        </div>
+
+        <div style={{ background: 'rgba(167,139,250,.07)', border: '1px solid rgba(167,139,250,.18)', borderRadius: 12, padding: '11px 15px', marginBottom: 16, display: 'flex', gap: 9, fontSize: 12, color: 'var(--text3)', alignItems: 'flex-start' }}>
+          <span style={{ fontSize: 14 }}>🔒</span>
+          <span>此為演示介面，不進行真實扣款。所有輸入資訊僅供示意，不會被儲存。</span>
+        </div>
+
+        <button className="btn-primary" onClick={() => { setLoading(true); setTimeout(() => { setLoading(false); setStep('success'); }, 1800); }} disabled={loading}>
+          {loading ? '付款處理中...' : '確認付款　NT$500'}
+        </button>
+      </div>
+    </div>
+  );
+
+  /* info step */
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }} className="fade">
+      <div style={{ height: 210, background: 'linear-gradient(145deg,#140728,#2d1b69)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: 70, fontWeight: 900, letterSpacing: -5, color: 'var(--accent)', textShadow: '0 0 80px rgba(167,139,250,.6)', lineHeight: 1 }}>IAM</div>
+          <div style={{ fontSize: 10, color: 'rgba(167,139,250,.55)', letterSpacing: 7, marginTop: 8 }}>EXCLUSIVE</div>
+        </div>
+        <button onClick={onBack} style={{ position: 'absolute', top: 14, left: 14, background: 'rgba(0,0,0,.45)', border: 'none', borderRadius: '50%', width: 38, height: 38, color: '#fff', cursor: 'pointer', fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>←</button>
+      </div>
+
+      <div style={{ flex: 1, overflowY: 'auto', padding: '22px 18px' }}>
+        <div style={{ fontWeight: 800, fontSize: 22, marginBottom: 6 }}>加入 IAM 高會</div>
+        <div style={{ color: 'var(--text3)', fontSize: 14, marginBottom: 24 }}>解鎖與小花最親密的互動空間 💜</div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 11, marginBottom: 24 }}>
+          {[['💜', '限定貼文', '高會獨享內容'], ['🫧', '泡泡聊天', '一對一私訊'], ['📸', '獨家相冊', '幕後花絮'], ['🎵', '搶先試聽', '新歌首發']].map(([e, t, d]) => (
+            <div key={t} className="card" style={{ padding: '16px 14px' }}>
+              <div style={{ fontSize: 28, marginBottom: 9 }}>{e}</div>
+              <div style={{ fontWeight: 700, fontSize: 13 }}>{t}</div>
+              <div style={{ color: 'var(--text3)', fontSize: 11, marginTop: 3 }}>{d}</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="card" style={{ padding: '18px 20px', marginBottom: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid var(--border2)' }}>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 16 }}>永久解鎖</div>
+            <div style={{ color: 'var(--text3)', fontSize: 12, marginTop: 3 }}>一次付費，終身享有</div>
+          </div>
+          <div style={{ fontSize: 32, fontWeight: 900, color: 'var(--accent)' }}>NT$500</div>
+        </div>
+
+        <button className="btn-primary" onClick={() => setStep('pay')}>立即解鎖 →</button>
+        <div style={{ textAlign: 'center', marginTop: 14, color: 'var(--text3)', fontSize: 12 }}>{fmt(248600)} 位粉絲已加入</div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════
+   POST CARD
+══════════════════════════════════════════════ */
+function PostCard({ post, currentUser, starUser }) {
+  const [liked, setLiked] = useState((post.likes || []).includes(currentUser.id));
+  const [likeCount, setLikeCount] = useState((post.likes || []).length);
+  const [showComments, setShowComments] = useState(false);
+  const [comments, setComments] = useState(post.comments || []);
+  const [commentText, setCommentText] = useState('');
+  const [imgLoaded, setImgLoaded] = useState(false);
+
+  const toggleLike = () => {
+    const np = DB.get('posts', []);
+    const idx = np.findIndex(x => x.id === post.id);
+    if (idx < 0) return;
+    if (liked) np[idx].likes = (np[idx].likes || []).filter(x => x !== currentUser.id);
+    else np[idx].likes = [...(np[idx].likes || []), currentUser.id];
+    DB.set('posts', np);
+    setLiked(v => !v);
+    setLikeCount(v => liked ? v - 1 : v + 1);
+  };
+
+  const addComment = () => {
+    if (!commentText.trim()) return;
+    const c = { id: uid(), user_id: currentUser.id, user_name: currentUser.display_name, user_avatar: currentUser.avatar, text: commentText.trim(), time: Date.now() };
+    const np = DB.get('posts', []);
+    const idx = np.findIndex(x => x.id === post.id);
+    if (idx >= 0) { np[idx].comments = [...(np[idx].comments || []), c]; DB.set('posts', np); }
+    setComments(v => [...v, c]);
+    setCommentText('');
+  };
+
+  return (
+    <div className="fade card" style={{ marginBottom: 12, overflow: 'hidden' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '13px 14px' }}>
+        <Avatar src={starUser && starUser.avatar} name={starUser && starUser.display_name} size={42} ring online />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontWeight: 700, fontSize: 14, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+            {starUser && starUser.display_name}
+            <span style={{ background: 'var(--accent2)', color: '#e9d5ff', fontSize: 9, padding: '2px 7px', borderRadius: 6, fontWeight: 600, letterSpacing: .5 }}>高會</span>
+          </div>
+          <div style={{ color: 'var(--text3)', fontSize: 11, marginTop: 1 }}>{timeAgo(post.created_at)}</div>
+        </div>
+        <div style={{ color: 'var(--text3)', fontSize: 18, letterSpacing: 2, cursor: 'pointer' }}>···</div>
+      </div>
+
+      {/* Media */}
+      {post.media_url && post.media_type === 'image' && (
+        <div style={{ position: 'relative', background: 'var(--card2)', minHeight: imgLoaded ? 0 : 200 }}>
+          {!imgLoaded && <Spinner />}
+          <img src={post.media_url} alt="" onLoad={() => setImgLoaded(true)} style={{ width: '100%', maxHeight: 420, objectFit: 'cover', display: imgLoaded ? 'block' : 'none' }} />
+        </div>
+      )}
+
+      {/* Content */}
+      {post.content && (
+        <div style={{ padding: post.media_url ? '10px 14px' : '4px 14px 10px', fontSize: 14, lineHeight: 1.7, color: 'var(--text)', whiteSpace: 'pre-wrap' }}>{post.content}</div>
+      )}
+
+      {/* Actions */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '8px 14px 11px', borderTop: '1px solid var(--border)', marginTop: post.content ? 0 : 0 }}>
+        <button onClick={toggleLike} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, color: liked ? 'var(--pink)' : 'var(--text3)', fontSize: 13, transition: 'color .15s' }}>
+          <span style={{ fontSize: 20, lineHeight: 1 }}>{liked ? '♥' : '♡'}</span>
+          {likeCount > 0 && <span>{fmt(likeCount)}</span>}
+        </button>
+        <button onClick={() => setShowComments(v => !v)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, color: showComments ? 'var(--accent)' : 'var(--text3)', fontSize: 13 }}>
+          <span style={{ fontSize: 17 }}>💬</span>
+          {comments.length > 0 && <span>{comments.length}</span>}
+        </button>
+        <div style={{ flex: 1 }} />
+        <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text3)', fontSize: 17 }}>↗</button>
+      </div>
+
+      {/* Comments */}
+      {showComments && (
+        <div style={{ borderTop: '1px solid var(--border)', padding: '12px 14px' }}>
+          {comments.length === 0 && (
+            <div style={{ color: 'var(--text3)', fontSize: 12, textAlign: 'center', padding: '8px 0' }}>還沒有留言，來搶沙發 🛋️</div>
+          )}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 200, overflowY: 'auto', marginBottom: comments.length ? 12 : 0 }}>
+            {comments.map(c => (
+              <div key={c.id} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                <Avatar src={c.user_avatar} name={c.user_name} size={28} />
+                <div style={{ flex: 1, background: 'var(--bg3)', borderRadius: '4px 14px 14px 14px', padding: '8px 12px' }}>
+                  <div style={{ fontWeight: 700, fontSize: 11, color: 'var(--accent)', marginBottom: 3 }}>{c.user_name}</div>
+                  <div style={{ fontSize: 13, color: 'var(--text2)', lineHeight: 1.5 }}>{c.text}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <Avatar src={currentUser && currentUser.avatar} name={currentUser && currentUser.display_name} size={30} />
+            <input className="input" value={commentText} onChange={e => setCommentText(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && addComment()}
+              placeholder="留言..." style={{ borderRadius: 24, padding: '9px 14px', fontSize: 13, flex: 1 }} />
+            <button onClick={addComment} style={{ background: commentText.trim() ? 'var(--accent2)' : 'var(--card3)', border: 'none', borderRadius: 20, padding: '9px 16px', color: '#fff', fontSize: 12, cursor: 'pointer', flexShrink: 0, transition: 'background .15s' }}>發送</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════
+   HOME FEED
+══════════════════════════════════════════════ */
+function HomeFeed({ currentUser, starUser, isPremium, onUnlock }) {
+  const [posts, setPosts] = useState(() => DB.get('posts', []));
+  useEffect(() => {
+    const t = setInterval(() => setPosts(DB.get('posts', [])), 2500);
+    return () => clearInterval(t);
+  }, []);
+
+  return (
+    <div style={{ flex: 1, overflowY: 'auto', padding: '12px 12px 8px' }}>
+      {/* Banner */}
+      <div style={{ borderRadius: 20, overflow: 'hidden', marginBottom: 14, position: 'relative' }}>
+        <div style={{ background: 'linear-gradient(135deg,#140728 0%,#2d1b69 100%)', padding: '18px 18px 16px', display: 'flex', alignItems: 'center', gap: 14 }}>
+          <Avatar src={starUser && starUser.avatar} name={starUser && starUser.display_name} size={62} ring online />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 900, fontSize: 20, letterSpacing: 1, color: 'var(--accent)', textShadow: '0 0 20px rgba(167,139,250,.4)' }}>IAM</div>
+            <div style={{ fontSize: 13, color: 'var(--text2)', marginTop: 1 }}>{starUser && starUser.display_name}</div>
+            <div style={{ color: 'rgba(255,255,255,.4)', fontSize: 11, marginTop: 4 }}>{fmt(starUser && starUser.followers)} 位成員</div>
+            {!isPremium ? (
+              <button onClick={onUnlock} style={{ marginTop: 10, background: 'linear-gradient(135deg,var(--accent3),var(--accent))', border: 'none', borderRadius: 20, padding: '6px 16px', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+                解鎖高會 NT$500 →
+              </button>
+            ) : (
+              <div style={{ marginTop: 8, display: 'inline-flex', alignItems: 'center', gap: 4, background: 'rgba(167,139,250,.12)', border: '1px solid rgba(167,139,250,.3)', borderRadius: 20, padding: '3px 12px', fontSize: 11, color: 'var(--accent)' }}>
+                ✓ 已解鎖高會
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {posts.map(p => <PostCard key={p.id} post={p} currentUser={currentUser} starUser={starUser} />)}
+      <div style={{ height: 12 }} />
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════
+   BUBBLE
+══════════════════════════════════════════════ */
+function BubbleScreen({ currentUser, starUser, isStar, onBubbleCount }) {
+  const [msgs, setMsgs] = useState([]);
+  const [selectedFan, setSelectedFan] = useState(null);
+  const [input, setInput] = useState('');
+  const endRef = useRef(null);
+  const fans = DB.get('users', []).filter(u => u.role === 'fan');
+
+  const loadMsgs = useCallback(() => {
+    const all = DB.get('bubbles', {});
+    if (isStar) {
+      if (selectedFan) setMsgs(all[selectedFan.id] || []);
+      else {
+        const flat = [];
+        Object.entries(all).forEach(([uid, ms]) => ms.forEach(m => flat.push({ ...m, _fanId: uid })));
+        flat.sort((a, b) => a.time - b.time);
+        setMsgs(flat);
+      }
+    } else {
+      const myMsgs = all[currentUser.id] || [];
+      setMsgs(myMsgs);
+      if (onBubbleCount) onBubbleCount(myMsgs.filter(m => m.is_star && !m.read).length);
+    }
+  }, [isStar, selectedFan, currentUser.id]);
+
+  useEffect(() => { loadMsgs(); }, [loadMsgs]);
+  useEffect(() => { const t = setInterval(loadMsgs, 1800); return () => clearInterval(t); }, [loadMsgs]);
+  useEffect(() => { endRef.current && endRef.current.scrollIntoView({ behavior: 'smooth' }); }, [msgs]);
+
+  const send = () => {
+    if (!input.trim()) return;
+    const all = DB.get('bubbles', {});
+    const msg = { id: uid(), from: currentUser.id, from_name: currentUser.display_name, from_avatar: currentUser.avatar, text: input.trim(), time: Date.now(), is_star: isStar };
+    if (isStar) {
+      if (selectedFan) {
+        if (!all[selectedFan.id]) all[selectedFan.id] = [];
+        all[selectedFan.id].push(msg);
+      } else {
+        fans.forEach(f => {
+          if (!all[f.id]) all[f.id] = [];
+          all[f.id].push({ ...msg, broadcast: true });
+        });
+      }
+    } else {
+      if (!all[currentUser.id]) all[currentUser.id] = [];
+      all[currentUser.id].push(msg);
+    }
+    DB.set('bubbles', all);
+    setInput('');
+    setTimeout(loadMsgs, 30);
+  };
+
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      {/* Header */}
+      <div style={{ padding: '14px 16px 11px', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
+        <div style={{ fontWeight: 800, fontSize: 17, display: 'flex', alignItems: 'center', gap: 8 }}>
+          泡泡 🫧
+          {!isStar && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 4 }}>
+              <Avatar src={starUser && starUser.avatar} name={starUser && starUser.display_name} size={22} ring />
+              <span style={{ fontSize: 12, color: 'var(--text2)', fontWeight: 400 }}>{starUser && starUser.display_name}</span>
+            </div>
+          )}
+        </div>
+        <div style={{ color: 'var(--text3)', fontSize: 11, marginTop: 3 }}>
+          {isStar ? (selectedFan ? ('與 ' + selectedFan.display_name + ' 的對話') : '群發 · 所有粉絲') : '與小花的一對一私訊'}
+        </div>
+      </div>
+
+      {/* Star fan selector */}
+      {isStar && (
+        <div style={{ flexShrink: 0, padding: '8px 12px', borderBottom: '1px solid var(--border)', overflowX: 'auto' }}>
+          <div style={{ display: 'flex', gap: 8, minWidth: 'max-content', alignItems: 'center' }}>
+            <button onClick={() => setSelectedFan(null)}
+              style={{ padding: '5px 14px', background: !selectedFan ? 'var(--accent2)' : 'var(--card)', border: '1px solid ' + (!selectedFan ? 'var(--accent2)' : 'var(--border2)'), borderRadius: 20, color: !selectedFan ? '#fff' : 'var(--text2)', fontSize: 12, cursor: 'pointer', flexShrink: 0, fontWeight: !selectedFan ? 700 : 400 }}>
+              全部 {fans.length > 0 && fans.length}
+            </button>
+            {fans.map(f => (
+              <button key={f.id} onClick={() => setSelectedFan(selectedFan && selectedFan.id === f.id ? null : f)}
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 12px 4px 5px', background: selectedFan && selectedFan.id === f.id ? 'var(--accent2)' : 'var(--card)', border: '1px solid ' + (selectedFan && selectedFan.id === f.id ? 'var(--accent2)' : 'var(--border2)'), borderRadius: 20, cursor: 'pointer', color: selectedFan && selectedFan.id === f.id ? '#fff' : 'var(--text2)', fontSize: 12, flexShrink: 0 }}>
+                <Avatar src={f.avatar} name={f.display_name} size={22} />
+                {f.display_name}
+              </button>
+            ))}
+            {fans.length === 0 && <span style={{ fontSize: 12, color: 'var(--text3)' }}>尚無粉絲加入</span>}
+          </div>
+        </div>
+      )}
+
+      {/* Messages */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '14px 14px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {msgs.length === 0 && (
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text3)', fontSize: 13, gap: 12, paddingTop: 60 }}>
+            <div style={{ fontSize: 52 }}>🫧</div>
+            <div style={{ textAlign: 'center', lineHeight: 1.7 }}>
+              {isStar ? '還沒有訊息\n發送第一條泡泡給粉絲吧！' : '發送訊息給小花吧\n她會看到每一條喔 💜'}
+            </div>
+          </div>
+        )}
+        {msgs.map(m => {
+          const isMe = m.from === currentUser.id;
+          const otherAvatar = isStar ? m.from_avatar : (starUser && starUser.avatar);
+          const otherName = isStar ? m.from_name : (starUser && starUser.display_name);
+          return (
+            <div key={m.id} style={{ display: 'flex', gap: 8, flexDirection: isMe ? 'row-reverse' : 'row', alignItems: 'flex-end' }}>
+              {!isMe && <Avatar src={otherAvatar} name={otherName} size={34} ring={!isStar} />}
+              <div style={{ maxWidth: '74%' }}>
+                {!isMe && m.broadcast && (
+                  <div style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 3, marginLeft: 3 }}>📢 群發</div>
+                )}
+                <div style={{ background: isMe ? 'var(--accent2)' : 'var(--card2)', borderRadius: isMe ? '16px 16px 4px 16px' : '16px 16px 16px 4px', padding: '10px 14px', fontSize: 14, lineHeight: 1.6, color: 'var(--text)', border: '1px solid ' + (isMe ? 'transparent' : 'var(--border2)') }}>
+                  {m.text}
+                </div>
+                <div style={{ fontSize: 10, color: 'var(--text3)', textAlign: isMe ? 'right' : 'left', marginTop: 3, marginLeft: isMe ? 0 : 3 }}>
+                  {new Date(m.time).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+        <div ref={endRef} />
+      </div>
+
+      {/* Input */}
+      <div style={{ padding: '10px 12px', borderTop: '1px solid var(--border)', display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0, background: 'var(--bg2)' }}>
+        <input className="input" value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && send()}
+          placeholder={isStar && !selectedFan ? '群發給所有粉絲...' : '傳訊息給小花...'}
+          style={{ borderRadius: 24, padding: '10px 16px', fontSize: 14 }} />
+        <button onClick={send}
+          style={{ width: 44, height: 44, background: input.trim() ? 'var(--accent2)' : 'var(--card2)', border: '1px solid ' + (input.trim() ? 'var(--accent2)' : 'var(--border2)'), borderRadius: '50%', color: '#fff', fontSize: 18, cursor: 'pointer', flexShrink: 0, transition: 'background .15s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          ↑
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════
+   POST CREATOR
+══════════════════════════════════════════════ */
+function PostCreator({ currentUser, onDone }) {
+  const [mediaType, setMediaType] = useState('text');
+  const [text, setText] = useState('');
+  const [mediaUrl, setMediaUrl] = useState('');
+  const [posting, setPosting] = useState(false);
+  const [preview, setPreview] = useState(false);
+  const canPost = text.trim() || mediaUrl.trim();
+
+  const submit = () => {
+    if (!canPost) return;
+    setPosting(true);
+    setTimeout(() => {
+      DB.push('posts', {
+        id: 'p-' + uid(), author_id: currentUser.id, group_id: 'iam',
+        content: text.trim(), media_url: mediaUrl.trim(),
+        media_type: mediaUrl.trim() ? mediaType : 'text',
+        created_at: new Date().toISOString(), likes: [], comments: []
+      });
+      setPosting(false);
+      onDone();
+    }, 600);
+  };
+
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      {/* Header */}
+      <div style={{ padding: '13px 16px', borderBottom: '1px solid var(--border)', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 12 }}>
+        <Avatar src={currentUser.avatar} name={currentUser.display_name} size={40} ring />
+        <div style={{ flex: 1 }}>
+          <div style={{ fontWeight: 700, fontSize: 14 }}>{currentUser.display_name}</div>
+          <div style={{ fontSize: 11, color: 'var(--accent)', marginTop: 1 }}>IAM 高會 · 所有成員可見</div>
+        </div>
+        <button onClick={submit} disabled={posting || !canPost}
+          style={{ background: canPost && !posting ? 'linear-gradient(135deg,var(--accent3),var(--accent))' : 'var(--card3)', border: 'none', borderRadius: 20, padding: '8px 22px', color: '#fff', fontSize: 14, fontWeight: 700, cursor: canPost ? 'pointer' : 'default', transition: 'background .2s' }}>
+          {posting ? '發布中...' : '發布'}
+        </button>
+      </div>
+
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px 16px' }}>
+        {/* Type */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+          {[['text', '✏️', '文字'], ['image', '🖼️', '圖片'], ['video', '🎬', '影片']].map(([t, e, l]) => (
+            <button key={t} onClick={() => { setMediaType(t); setMediaUrl(''); }}
+              style={{ padding: '7px 16px', background: mediaType === t ? 'var(--accent2)' : 'var(--card)', border: '1px solid ' + (mediaType === t ? 'var(--accent2)' : 'var(--border2)'), borderRadius: 20, color: mediaType === t ? '#fff' : 'var(--text2)', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, fontWeight: mediaType === t ? 700 : 400 }}>
+              {e} {l}
+            </button>
+          ))}
+        </div>
+
+        <textarea className="input" value={text} onChange={e => setText(e.target.value)}
+          placeholder="分享你的動態、心情、獨家消息…"
+          rows={5} style={{ borderRadius: 14, padding: '14px', fontSize: 15, resize: 'none', lineHeight: 1.7, marginBottom: 12, display: 'block' }} />
+
+        {(mediaType === 'image' || mediaType === 'video') && (
+          <div style={{ marginBottom: 12 }}>
+            <input className="input" value={mediaUrl} onChange={e => { setMediaUrl(e.target.value); setPreview(false); }}
+              placeholder={mediaType === 'image' ? '圖片網址（URL）' : '影片網址（URL）'}
+              style={{ marginBottom: 8 }} />
+            {mediaUrl && (
+              <button onClick={() => setPreview(v => !v)}
+                style={{ background: 'none', border: 'none', color: 'var(--accent)', fontSize: 12, cursor: 'pointer' }}>
+                {preview ? '隱藏預覽' : '預覽圖片'}
+              </button>
+            )}
+          </div>
+        )}
+
+        {preview && mediaUrl && mediaType === 'image' && (
+          <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid var(--border2)', marginBottom: 14 }}>
+            <img src={mediaUrl} alt="" style={{ width: '100%', maxHeight: 260, objectFit: 'cover', display: 'block' }} />
+          </div>
+        )}
+
+        {/* Tips */}
+        <div style={{ background: 'var(--glowb)', borderRadius: 14, padding: '14px 16px', border: '1px solid rgba(167,139,250,.12)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <div style={{ color: 'var(--text3)', fontSize: 11, fontWeight: 600, gridColumn: '1/-1', marginBottom: 4 }}>發布後</div>
+          {[['💜', '高會限定顯示'], ['🔒', '端對端加密'], ['⚡', '即時推播通知'], ['📊', '可查看互動數據']].map(([e, t]) => (
+            <div key={t} style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, color: 'var(--text3)' }}>
+              <span>{e}</span>{t}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════
+   PROFILE
+══════════════════════════════════════════════ */
+function ProfileScreen({ currentUser, setCurrentUser, isStar, isPremium, onLogout }) {
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState({ display_name: currentUser.display_name, bio: currentUser.bio || '' });
+  const [toast, setToast] = useState('');
+  const postCount = isStar ? DB.get('posts', []).filter(p => p.author_id === currentUser.id).length : 0;
+  const starUser = DB.get('users', []).find(u => u.username === 'xiaohua');
+
+  const save = () => {
+    if (!form.display_name.trim()) return;
+    const users = DB.get('users', []);
+    const idx = users.findIndex(u => u.id === currentUser.id);
+    if (idx >= 0) { users[idx] = { ...users[idx], ...form }; DB.set('users', users); }
+    setCurrentUser({ ...currentUser, ...form });
+    setEditing(false);
+    setToast('已儲存 ✓');
+  };
+
+  return (
+    <div style={{ flex: 1, overflowY: 'auto' }}>
+      {toast && <Toast msg={toast} onDone={() => setToast('')} />}
+
+      {/* Cover */}
+      <div style={{ height: 155, background: 'linear-gradient(135deg,#140728,#2d1b69)', position: 'relative', flexShrink: 0, overflow: 'hidden' }}>
+        {(isStar && starUser && starUser.cover) && (
+          <img src={starUser.cover} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: .4 }} />
+        )}
+        {isStar && (
+          <div style={{ position: 'absolute', top: 12, right: 12, background: 'rgba(0,0,0,.5)', borderRadius: 20, padding: '4px 13px', fontSize: 10, color: 'var(--accent)', border: '1px solid rgba(167,139,250,.3)' }}>
+            ⭐ 明星帳號
+          </div>
+        )}
+      </div>
+
+      <div style={{ padding: '0 18px 28px' }}>
+        {/* Avatar row */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: -30, marginBottom: 14 }}>
+          <div style={{ width: 78, height: 78, borderRadius: '50%', overflow: 'hidden', border: '3px solid var(--bg)', background: 'var(--card3)' }}>
+            <img src={currentUser.avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => e.target.style.display = 'none'} />
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {!editing && (
+              <button onClick={() => setEditing(true)} className="btn-ghost" style={{ width: 'auto', padding: '7px 18px', fontSize: 13 }}>編輯資料</button>
+            )}
+          </div>
+        </div>
+
+        {/* Info */}
+        {editing ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
+            <input className="input" value={form.display_name} onChange={e => setForm({ ...form, display_name: e.target.value })} placeholder="暱稱" />
+            <textarea className="input" value={form.bio} onChange={e => setForm({ ...form, bio: e.target.value })} placeholder="個人簡介..." rows={3} style={{ resize: 'none', borderRadius: 14, lineHeight: 1.6 }} />
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button className="btn-primary" onClick={save} style={{ flex: 1 }}>儲存</button>
+              <button className="btn-ghost" onClick={() => setEditing(false)} style={{ flex: 1 }}>取消</button>
+            </div>
+          </div>
+        ) : (
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: 22, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 8 }}>
+              {currentUser.display_name}
+              {isStar && <span style={{ fontSize: 14 }}>⭐</span>}
+            </div>
+            <div style={{ color: 'var(--text3)', fontSize: 13, marginTop: 2 }}>@{currentUser.username}</div>
+            {currentUser.bio && (
+              <div style={{ color: 'var(--text2)', fontSize: 14, marginTop: 10, lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{currentUser.bio}</div>
+            )}
+            <div style={{ color: 'var(--text3)', fontSize: 12, marginTop: 8 }}>加入於 {new Date(currentUser.joined).toLocaleDateString('zh-TW')}</div>
+          </div>
+        )}
+
+        {/* Stats */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 1, background: 'var(--border)', borderRadius: 16, overflow: 'hidden', marginBottom: 20 }}>
+          {[
+            [isStar ? postCount : (isPremium ? 1 : 0), isStar ? '貼文' : '加入的團'],
+            [fmt(currentUser.followers || 0), '粉絲'],
+            [currentUser.following || 0, '追蹤'],
+          ].map(([v, l]) => (
+            <div key={l} style={{ background: 'var(--card)', padding: '16px 0', textAlign: 'center' }}>
+              <div style={{ fontWeight: 800, fontSize: 20 }}>{v}</div>
+              <div style={{ color: 'var(--text3)', fontSize: 11, marginTop: 3 }}>{l}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Badges */}
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
+          {isPremium && !isStar && <span className="badge-premium">💜 IAM 高會</span>}
+          {isStar && <span style={{ background: 'rgba(251,191,36,.1)', border: '1px solid rgba(251,191,36,.3)', borderRadius: 20, padding: '3px 12px', fontSize: 10, color: 'var(--gold)' }}>⭐ 認證明星</span>}
+        </div>
+
+        {/* Settings */}
+        <div className="card" style={{ overflow: 'hidden', marginBottom: 14 }}>
+          {[
+            isStar ? ['⚙️', '後台管理'] : ['❤️', '我的收藏'],
+            ['🔔', '通知設定'],
+            ['🛡️', '隱私與安全'],
+            ['❓', '幫助中心'],
+          ].map(([e, l], i, arr) => (
+            <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '14px 16px', borderBottom: i < arr.length - 1 ? '1px solid var(--border)' : 'none', cursor: 'pointer' }}
+              onClick={() => setToast(l + ' 功能開發中')}>
+              <span style={{ fontSize: 18 }}>{e}</span>
+              <span style={{ flex: 1, fontSize: 14, color: 'var(--text2)' }}>{l}</span>
+              <span style={{ color: 'var(--text3)', fontSize: 16 }}>›</span>
+            </div>
+          ))}
+        </div>
+
+        <button className="btn-ghost" onClick={onLogout} style={{ color: '#f87171', borderColor: 'rgba(248,113,113,.3)' }}>
+          登出
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════
+   EXPLORE
+══════════════════════════════════════════════ */
+function ExploreScreen({ onJoinGroup, isPremium }) {
+  const coming = ['DREAM', 'NOVA', 'SHINE', 'BLOOM'];
+  return (
+    <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
+      <div style={{ fontWeight: 800, fontSize: 20, marginBottom: 4 }}>探索團體</div>
+      <div style={{ color: 'var(--text3)', fontSize: 13, marginBottom: 22 }}>加入你喜愛的明星高會</div>
+
+      {/* IAM */}
+      <div className="card" style={{ overflow: 'hidden', marginBottom: 14, border: '1px solid var(--border2)' }}>
+        <div style={{ height: 100, background: 'linear-gradient(145deg,#140728,#2d1b69)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+          <div style={{ fontSize: 44, fontWeight: 900, letterSpacing: -3, color: 'var(--accent)', textShadow: '0 0 40px rgba(167,139,250,.5)' }}>IAM</div>
+          {isPremium && (
+            <div style={{ position: 'absolute', top: 10, right: 10, background: 'rgba(167,139,250,.2)', border: '1px solid var(--accent)', borderRadius: 20, padding: '3px 10px', fontSize: 10, color: 'var(--accent)' }}>✓ 已加入</div>
+          )}
+        </div>
+        <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 16 }}>IAM</div>
+            <div style={{ color: 'var(--text3)', fontSize: 12, marginTop: 2 }}>與小花最親密的高會空間</div>
+            <div style={{ color: 'var(--text3)', fontSize: 11, marginTop: 5, display: 'flex', alignItems: 'center', gap: 4 }}>
+              <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: 'var(--green)' }} />
+              {fmt(248600)} 成員
+            </div>
+          </div>
+          {!isPremium ? (
+            <button onClick={onJoinGroup}
+              style={{ background: 'linear-gradient(135deg,var(--accent3),var(--accent))', border: 'none', borderRadius: 20, padding: '9px 20px', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+              加入
+            </button>
+          ) : (
+            <button style={{ background: 'var(--card3)', border: '1px solid var(--border2)', borderRadius: 20, padding: '9px 18px', color: 'var(--text3)', fontSize: 12, cursor: 'default' }}>
+              已加入
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Coming soon */}
+      <div style={{ fontWeight: 600, fontSize: 13, color: 'var(--text3)', marginBottom: 12, marginTop: 24, textTransform: 'uppercase', letterSpacing: 1 }}>即將推出</div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        {coming.map(n => (
+          <div key={n} className="card" style={{ overflow: 'hidden' }}>
+            <div style={{ height: 70, background: 'var(--card2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--text3)', letterSpacing: 1 }}>{n}</div>
+            </div>
+            <div style={{ padding: '10px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ fontSize: 11, color: 'var(--text3)' }}>即將推出</div>
+              <div style={{ background: 'var(--card2)', border: '1px solid var(--border2)', borderRadius: 14, padding: '4px 10px', fontSize: 10, color: 'var(--text3)', cursor: 'pointer' }}>提醒我</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════
+   APP ROOT
+══════════════════════════════════════════════ */
+function App() {
+  const [screen, setScreen] = useState('login');
+  const [currentUser, setCurrentUser] = useState(null);
+  const [tab, setTab] = useState('home');
+  const [bubbleCount, setBubbleCount] = useState(0);
+
+  const isStar = currentUser ? currentUser.role === 'star' : false;
+
+  const isPremium = useMemo(() => {
+    if (!currentUser) return false;
+    if (isStar) return true;
+    const groups = DB.get('groups', []);
+    const g = groups.find(x => x.id === 'iam');
+    return g && Array.isArray(g.unlocked_users) && g.unlocked_users.includes(currentUser.id);
+  }, [currentUser, screen]);
+
+  const starUser = useMemo(() => DB.get('users', []).find(u => u.username === 'xiaohua'), []);
+
+  const handleLogin = user => { setCurrentUser(user); setScreen('main'); setTab('home'); };
+  const handleLogout = () => { setCurrentUser(null); setScreen('login'); setTab('home'); };
+
+  const handleUnlockDone = () => {
+    const groups = DB.get('groups', []);
+    const idx = groups.findIndex(g => g.id === 'iam');
+    if (idx >= 0) {
+      if (!Array.isArray(groups[idx].unlocked_users)) groups[idx].unlocked_users = [];
+      if (!groups[idx].unlocked_users.includes(currentUser.id)) {
+        groups[idx].unlocked_users.push(currentUser.id);
+        DB.set('groups', groups);
+      }
+    }
+    setScreen('main'); setTab('home');
+  };
+
+  const renderScreen = () => {
+    if (screen === 'login') return <LoginScreen onLogin={handleLogin} onRegister={() => setScreen('register')} />;
+    if (screen === 'register') return <RegisterScreen onBack={() => setScreen('login')} onDone={handleLogin} />;
+    if (screen === 'unlock') return <UnlockScreen onPay={handleUnlockDone} onBack={() => setScreen('main')} />;
+    return null;
+  };
+
+  const renderTab = () => {
+    if (isStar && tab === 'post') return <PostCreator currentUser={currentUser} onDone={() => setTab('home')} />;
+    if (tab === 'home') return <HomeFeed currentUser={currentUser} starUser={starUser} isPremium={isPremium} onUnlock={() => setScreen('unlock')} />;
+    if (tab === 'bubble') return <BubbleScreen currentUser={currentUser} starUser={starUser} isStar={isStar} onBubbleCount={setBubbleCount} />;
+    if (tab === 'explore') return <ExploreScreen onJoinGroup={() => setScreen('unlock')} isPremium={isPremium} />;
+    if (tab === 'profile') return <ProfileScreen currentUser={currentUser} setCurrentUser={u => setCurrentUser(u)} isStar={isStar} isPremium={isPremium} onLogout={handleLogout} />;
+    return null;
+  };
+
+  if (screen !== 'main') {
+    return <div className="shell">{renderScreen()}</div>;
+  }
+
+  return (
+    <div className="shell">
+      <TopBar isPremium={isPremium} bubbleCount={bubbleCount} />
+      {renderTab()}
+      <TabBar tab={tab} setTab={t => { setTab(t); setBubbleCount(0); }} isStar={isStar} bubbleCount={bubbleCount} />
+    </div>
+  );
+}
+
+ReactDOM.render(React.createElement(App), document.getElementById('root'));
+</script>
+</body>
+</html>
