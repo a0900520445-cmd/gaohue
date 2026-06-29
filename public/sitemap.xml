@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <!-- 首頁（含登入） -->
+  <url>
+    <loc>https://yuyan-edu-yu.onrender.com/</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- 榮譽榜 -->
+  <url>
+    <loc>https://yuyan-edu-yu.onrender.com/honor_board</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- 校園介紹 -->
+  <url>
+    <loc>https://yuyan-edu-yu.onrender.com/campus</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- 最新消息 -->
+  <url>
+    <loc>https://yuyan-edu-yu.onrender.com/news</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- 點數查詢 -->
+  <url>
+    <loc>https://yuyan-edu-yu.onrender.com/points</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- 巡堂系統 -->
+  <url>
+    <loc>https://yuyan-edu-yu.onrender.com/class_inspections</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- 差勤系統 -->
+  <url>
+    <loc>https://yuyan-edu-yu.onrender.com/leave_query</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- 後台 -->
+  <url>
+    <loc>https://yuyan-edu-yu.onrender.com/admin/dashboard</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- 直播後台 -->
+  <url>
+    <loc>https://yuyan-edu-yu.onrender.com/liveadmin</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- 直播觀看 -->
+  <url>
+    <loc>https://yuyan-edu-yu.onrender.com/live</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+</urlset>
