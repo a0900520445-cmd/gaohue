@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>線上直播 - 御園國小</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --green-dark:#1a5c3a; --green-mid:#2e8b57;
+      --gold:#f5b400; --red:#e5484d;
+      --white:#fff; --gray-bg:#f4f7f5;
+      --text-dark:#1a2b1f; --text-light:#6b8f71;
+      --font-title:'Noto Serif TC',serif; --font-body:'Noto Sans TC',sans-serif;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{overflow-x:hidden;width:100%;}
+    body{font-family:var(--font-body);background:var(--gray-bg);color:var(--text-dark);min-height:100vh;width:100%;overflow-x:hidden;}
+
+    .top-nav{
+      background:linear-gradient(135deg,var(--green-dark),var(--green-mid));
+      color:#fff;padding:14px 24px;display:flex;align-items:center;gap:12px;
+    }
+    .nav-logo{width:36px;height:36px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-title);font-weight:700;font-size:16px;color:var(--green-dark);flex-shrink:0;}
+    .nav-title{font-size:1rem;font-weight:700;letter-spacing:.5px;}
+    .nav-back{margin-left:auto;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:6px 16px;border-radius:20px;font-size:.82rem;cursor:pointer;text-decoration:none;transition:.2s;}
+    .nav-back:hover{background:rgba(255,255,255,.25);}
+
+    .wrap{max-width:920px;margin:0 auto;padding:28px 20px 60px;}
+
+    .live-badge-row{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+    .live-badge{
+      display:flex;align-items:center;gap:6px;
+      background:var(--red);color:#fff;font-size:.78rem;font-weight:700;
+      padding:5px 12px;border-radius:20px;letter-spacing:.5px;
+    }
+    .live-badge .dot{width:7px;height:7px;border-radius:50%;background:#fff;animation:pulse 1.4s ease infinite;}
+    @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+    .live-status-text{font-size:.85rem;color:var(--text-light);}
+
+    .video-wrap{
+      background:#000;border-radius:14px;overflow:hidden;
+      aspect-ratio:16/9;box-shadow:0 8px 32px rgba(0,0,0,.15);
+      position:relative;
+    }
+    #player{width:100%;height:100%;object-fit:contain;display:block;}
+
+    .live-edge-badge{
+      position:absolute;left:14px;bottom:14px;
+      background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.3);
+      color:#fff;font-size:.78rem;font-weight:600;
+      padding:6px 14px;border-radius:20px;
+      display:none;align-items:center;gap:6px;
+      z-index:5;pointer-events:none;
+    }
+    .live-edge-badge.show{display:flex;}
+    .live-edge-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--red);animation:pulse 1.4s ease infinite;}
+
+    /* 全螢幕模式下讓影片填滿整個螢幕（瀏覽器原生 controls 已內建全螢幕按鈕）*/
+    .video-wrap:fullscreen{
+      aspect-ratio:unset;border-radius:0;
+      display:flex;align-items:center;justify-content:center;
+    }
+    .video-wrap:fullscreen #player{width:100%;height:100%;}
+    .video-wrap:-webkit-full-screen{aspect-ratio:unset;border-radius:0;}
+    .video-wrap:-webkit-full-screen #player{width:100%;height:100%;}
+
+    .offline-screen{
+      position:absolute;inset:0;display:flex;flex-direction:column;
+      align-items:center;justify-content:center;gap:14px;color:#9aa3a0;
+      background:linear-gradient(160deg,#1a2420,#0f1512);
+    }
+    .offline-icon{font-size:3rem;opacity:.6;}
+    .offline-title{font-size:1.05rem;font-weight:600;color:#d4dad7;}
+    .offline-sub{font-size:.85rem;color:#7d8884;}
+    .btn-replay{
+      margin-top:6px;background:rgba(46,139,87,.18);border:1px solid rgba(46,139,87,.4);
+      color:#bdeccb;padding:9px 22px;border-radius:24px;font-size:.85rem;font-weight:600;
+      cursor:pointer;transition:background .2s ease;font-family:var(--font-body);
+    }
+    .btn-replay:hover{background:rgba(46,139,87,.3);}
+
+    .info-bar{
+      display:flex;align-items:center;justify-content:space-between;
+      margin-top:14px;padding:14px 18px;background:var(--white);
+      border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,.05);
+      flex-wrap:wrap;gap:10px;
+    }
+    .viewer-count{font-size:.85rem;color:var(--text-light);display:flex;align-items:center;gap:6px;}
+    .unmute-hint{
+      font-size:.82rem;color:var(--green-mid);font-weight:600;cursor:pointer;
+      display:none;align-items:center;gap:6px;
+    }
+    .unmute-hint.show{display:flex;}
+    .back-live-link{
+      font-size:.82rem;color:var(--green-mid);font-weight:600;cursor:pointer;
+      display:none;align-items:center;gap:6px;
+    }
+
+    @media(max-width:600px){
+      .wrap{padding:18px 14px 40px;}
+      .top-nav{padding:12px 16px;}
+    }
+  </style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <div class="nav-logo">御</div>
+  <span class="nav-title">御園國小 線上直播</span>
+  <a href="/" class="nav-back">← 返回首頁</a>
+</nav>
+
+<div class="wrap">
+
+  <div class="live-badge-row">
+    <span class="live-badge" id="live-badge" style="display:none;">
+      <span class="dot"></span> LIVE
+    </span>
+    <span class="live-status-text" id="status-text">連線中，請稍候...</span>
+  </div>
+
+  <div class="video-wrap" id="video-wrap">
+    <video id="player" controls playsinline autoplay></video>
+    <div class="offline-screen" id="offline-screen">
+      <div class="offline-icon">📡</div>
+      <div class="offline-title">目前沒有進行中的直播</div>
+      <div class="offline-sub" id="offline-sub">直播開始後此畫面會自動連線</div>
+      <button class="btn-replay" id="btn-replay" onclick="watchReplay()" style="display:none;">▶ 觀看上次直播回放</button>
+    </div>
+    <div class="live-edge-badge" id="live-edge-badge"><span class="dot"></span> 直播中</div>
+  </div>
+
+  <div class="info-bar">
+    <span class="viewer-count" id="mode-label">👁 即時觀看人數可於直播時顯示</span>
+    <span class="unmute-hint" id="unmute-hint" onclick="unmuteVideo()">🔇 點此開啟聲音</span>
+    <span class="back-live-link" id="back-live-link" onclick="backToLive()" style="display:none;">← 返回直播</span>
+  </div>
+
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+// 御園國小直播：單一播放器架構
+// 核心理念：跟 YouTube 直播一樣，只有一個 <video controls>，
+// 使用者直接拖動瀏覽器原生進度條即可在「直播中」與「往回看」之間自由切換，
+// 不需要任何額外按鈕或模式切換。
+//
+// 原理：用 MediaSource Extensions (MSE) 建立一條持續增長的時間軸。
+// WebRTC 負責即時取得畫面資料，但不直接顯示；而是用 MediaRecorder
+// 把這條 WebRTC 串流持續切成小片段，依序餵進同一個 SourceBuffer。
+// 使用者看到的 <video> 播放的就是這個 SourceBuffer——
+// 停在最尾端＝看直播，往前拖＝看剛剛發生的內容，原生支援。
+// ════════════════════════════════════════════════════════════
+
+const player = document.getElementById('player')
+let ws = null
+let pc = null
+
+let mediaSource = null
+let sourceBuffer = null
+let pendingQueue = []
+let appending = false
+let liveRecorder = null
+let chosenMimeType = ''
+const MAX_BUFFER_SECONDS = 1800 // 緩衝視窗最長保留 30 分鐘，超過自動清除最舊的部分
+const LIVE_EDGE_THRESHOLD = 4   // 與 buffer 尾端相差幾秒內，視為「在直播現場」
+
+const ICE_SERVERS = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }
+
+// ── 畫面狀態切換 ──────────────────────────────────────────
+function setOffline() {
+  document.getElementById('offline-screen').style.display = 'flex'
+  document.getElementById('live-badge').style.display = 'none'
+  document.getElementById('status-text').textContent = '目前沒有進行中的直播'
+  document.getElementById('unmute-hint').classList.remove('show')
+  document.getElementById('live-edge-badge').classList.remove('show')
+  if (pc) { pc.close(); pc = null }
+  stopLiveBuffer()
+  checkReplayAvailable()
+}
+
+function setOnline() {
+  document.getElementById('offline-screen').style.display = 'none'
+  document.getElementById('live-badge').style.display = 'flex'
+  document.getElementById('status-text').textContent = '直播進行中'
+  document.getElementById('mode-label').textContent = '👁 拖動下方進度條即可往前看剛剛的畫面'
+  document.getElementById('back-live-link').style.display = 'none'
+}
+
+// ── WebRTC 訊號連線 ──────────────────────────────────────
+function connectSignaling() {
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+  ws = new WebSocket(`${protocol}//${window.location.host}/live-ws`)
+
+  ws.onopen = () => {
+    ws.send(JSON.stringify({ type: 'viewer-join' }))
+  }
+
+  ws.onmessage = async (event) => {
+    const msg = JSON.parse(event.data)
+
+    if (msg.type === 'live-status') {
+      if (msg.live) setOnline()
+      else setOffline()
+    }
+
+    if (msg.type === 'offer' && msg.fromBroadcaster) {
+      await handleOffer(msg.sdp)
+    }
+
+    if (msg.type === 'ice-candidate' && msg.fromBroadcaster) {
+      if (pc && msg.candidate) {
+        try { await pc.addIceCandidate(new RTCIceCandidate(msg.candidate)) } catch (e) {}
+      }
+    }
+  }
+
+  ws.onclose = () => {
+    setTimeout(connectSignaling, 2000)
+  }
+}
+
+async function handleOffer(sdp) {
+  if (pc) { pc.close() }
+  pc = new RTCPeerConnection(ICE_SERVERS)
+
+  pc.ontrack = (event) => {
+    // 不直接顯示這條串流，而是把它送進 MSE 緩衝管線
+    startLiveBuffer(event.streams[0])
+  }
+
+  pc.onicecandidate = (e) => {
+    if (e.candidate) {
+      ws.send(JSON.stringify({ type: 'ice-candidate', candidate: e.candidate }))
+    }
+  }
+
+  await pc.setRemoteDescription(new RTCSessionDescription(sdp))
+  const answer = await pc.createAnswer()
+  await pc.setLocalDescription(answer)
+  ws.send(JSON.stringify({ type: 'answer', sdp: answer }))
+
+  setOnline()
+}
+
+// ── MSE 直播緩衝管線（核心） ─────────────────────────────
+function startLiveBuffer(stream) {
+  stopLiveBuffer()
+
+  const mimeCandidates = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm']
+  chosenMimeType = mimeCandidates.find(t =>
+    MediaRecorder.isTypeSupported(t) && window.MediaSource && MediaSource.isTypeSupported(t)
+  ) || ''
+
+  if (!chosenMimeType) {
+    // 瀏覽器不支援 MSE 時，退回最基本的直接播放（不可拖拉，但至少看得到畫面）
+    console.log('此瀏覽器不支援緩衝拖拉功能，改為直接播放即時畫面')
+    player.srcObject = stream
+    player.muted = true
+    player.play().catch(() => {})
+    document.getElementById('unmute-hint').classList.add('show')
+    return
+  }
+
+  mediaSource = new MediaSource()
+  player.src = URL.createObjectURL(mediaSource)
+  player.muted = true // 自動播放政策要求；播放後提示使用者手動開聲音
+
+  mediaSource.addEventListener('sourceopen', () => {
+    sourceBuffer = mediaSource.addSourceBuffer(chosenMimeType)
+    sourceBuffer.addEventListener('updateend', onBufferUpdateEnd)
+
+    liveRecorder = new MediaRecorder(stream, { mimeType: chosenMimeType })
+    liveRecorder.ondataavailable = (e) => {
+      if (e.data && e.data.size > 0) {
+        pendingQueue.push(e.data)
+        flushQueue()
+      }
+    }
+    liveRecorder.start(2000) // 每 2 秒切一段，越短拖拉越精準
+
+    player.play().catch(() => {})
+    document.getElementById('unmute-hint').classList.add('show')
+  })
+}
+
+async function flushQueue() {
+  if (appending || !sourceBuffer || sourceBuffer.updating) return
+  if (pendingQueue.length === 0) return
+  const blob = pendingQueue.shift()
+  const buf = await blob.arrayBuffer()
+  appending = true
+  try {
+    sourceBuffer.appendBuffer(buf)
+  } catch (e) {
+    appending = false
+    console.log('寫入直播片段失敗', e)
+  }
+}
+
+function onBufferUpdateEnd() {
+  appending = false
+
+  // 滑動視窗：清除超過保留時長的舊內容
+  try {
+    if (sourceBuffer.buffered.length > 0) {
+      const start = sourceBuffer.buffered.start(0)
+      const end = sourceBuffer.buffered.end(sourceBuffer.buffered.length - 1)
+      if (end - start > MAX_BUFFER_SECONDS) {
+        sourceBuffer.remove(start, end - MAX_BUFFER_SECONDS)
+      }
+    }
+  } catch (e) {}
+
+  updateLiveEdgeBadge()
+  flushQueue()
+}
+
+// 顯示「直播中」標籤：當播放位置接近 buffer 最前緣時亮起
+function updateLiveEdgeBadge() {
+  if (!sourceBuffer || sourceBuffer.buffered.length === 0) return
+  const end = sourceBuffer.buffered.end(sourceBuffer.buffered.length - 1)
+  const atLiveEdge = (end - player.currentTime) <= LIVE_EDGE_THRESHOLD
+  document.getElementById('live-edge-badge').classList.toggle('show', atLiveEdge)
+}
+
+function stopLiveBuffer() {
+  if (liveRecorder && liveRecorder.state !== 'inactive') {
+    try { liveRecorder.stop() } catch (e) {}
+  }
+  liveRecorder = null
+  pendingQueue = []
+  appending = false
+  if (mediaSource && mediaSource.readyState === 'open') {
+    try { mediaSource.endOfStream() } catch (e) {}
+  }
+  mediaSource = null
+  sourceBuffer = null
+  player.removeAttribute('src')
+  player.load()
+}
+
+// 使用者拖動進度條時即時更新「直播中」標籤狀態
+player.addEventListener('timeupdate', updateLiveEdgeBadge)
+player.addEventListener('seeking', updateLiveEdgeBadge)
+
+function unmuteVideo() {
+  player.muted = false
+  document.getElementById('unmute-hint').classList.remove('show')
+}
+
+// ── 回放（直播結束後觀看歷史錄影，用法跟即時直播一致：同一個播放器、可拖進度條）──
+async function checkReplayAvailable() {
+  try {
+    const res = await fetch('/api/recording/latest')
+    const data = await res.json()
+    const btn = document.getElementById('btn-replay')
+    const sub = document.getElementById('offline-sub')
+    if (data.success && data.data) {
+      btn.style.display = 'inline-block'
+      const date = new Date(data.data.started_at).toLocaleString('zh-TW')
+      sub.textContent = `最近一場直播：${date}`
+    } else {
+      btn.style.display = 'none'
+    }
+  } catch (e) {
+    console.log('檢查回放失敗', e)
+  }
+}
+
+async function watchReplay() {
+  try {
+    const latestRes = await fetch('/api/recording/latest')
+    const latestData = await latestRes.json()
+    if (!latestData.success || !latestData.data) {
+      alert('目前沒有可觀看的回放')
+      return
+    }
+
+    const recordingId = latestData.data.id
+    const chunksRes = await fetch(`/api/recording/${recordingId}/chunks`)
+    const chunksData = await chunksRes.json()
+    if (!chunksData.success || !chunksData.urls || chunksData.urls.length === 0) {
+      alert('此次錄影沒有可播放的內容')
+      return
+    }
+
+    document.getElementById('offline-screen').style.display = 'none'
+    document.getElementById('mode-label').textContent = '▶ 回放模式，可直接拖動進度條'
+    document.getElementById('back-live-link').style.display = 'flex'
+
+    await playRecordedChunks(chunksData.urls, chunksData.mimeType)
+  } catch (e) {
+    console.log(e)
+    alert('載入回放失敗，請稍後再試')
+  }
+}
+
+// 用同一套 MSE 機制播放已完成的錄影片段清單
+async function playRecordedChunks(urls, mimeType) {
+  const type = mimeType || 'video/webm;codecs=vp9,opus'
+
+  if (!window.MediaSource || !MediaSource.isTypeSupported(type)) {
+    player.src = urls[0]
+    player.play().catch(() => {})
+    return
+  }
+
+  stopLiveBuffer()
+  const ms = new MediaSource()
+  player.src = URL.createObjectURL(ms)
+
+  ms.addEventListener('sourceopen', async () => {
+    const sb = ms.addSourceBuffer(type)
+    let i = 0
+
+    async function appendNext() {
+      if (i >= urls.length) {
+        if (ms.readyState === 'open') { try { ms.endOfStream() } catch (e) {} }
+        return
+      }
+      try {
+        const res = await fetch(urls[i])
+        const buf = await res.arrayBuffer()
+        i++
+        sb.appendBuffer(buf)
+      } catch (e) {
+        i++
+        appendNext()
+      }
+    }
+
+    sb.addEventListener('updateend', appendNext)
+    appendNext()
+  })
+
+  player.play().catch(() => {})
+}
+
+function backToLive() {
+  document.getElementById('back-live-link').style.display = 'none'
+  document.getElementById('mode-label').textContent = '👁 拖動下方進度條即可往前看剛剛的畫面'
+  setOffline() // 會重新檢查目前實際是直播中還是離線，WebSocket 訊息會自動切回正確狀態
+}
+
+connectSignaling()
+</script>
+</body>
+</html>

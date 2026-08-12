@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>教師薪資查詢 - 御園國小</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --ink:#1a1d21;--ink-2:#3d4148;--ink-3:#8a8f99;
+      --paper:#f8f7f4;--white:#ffffff;--line:#e5e2db;
+      --accent:#1a4a3a;--accent-soft:#eaf2ee;
+      --gold:#a07c30;--gold-soft:#fdf6e3;
+      --red:#c0392b;--red-soft:#fdf0ef;
+      --mono:'IBM Plex Mono',monospace;
+      --serif:'Noto Serif TC',serif;
+      --sans:'Noto Sans TC',sans-serif;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{overflow-x:hidden;}
+    body{font-family:var(--sans);background:var(--paper);color:var(--ink);min-height:100vh;animation:fadeIn .4s ease both;}
+    @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+
+    /* ── Nav ── */
+    .nav{background:var(--accent);color:#fff;padding:16px 32px;display:flex;align-items:center;gap:14px;}
+    .nav-logo{width:36px;height:36px;background:rgba(255,255,255,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-weight:700;font-size:15px;}
+    .nav-title{font-size:.95rem;font-weight:600;letter-spacing:.3px;}
+    .nav-back{margin-left:auto;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;padding:6px 16px;border-radius:20px;font-size:.8rem;cursor:pointer;text-decoration:none;transition:.2s;}
+    .nav-back:hover{background:rgba(255,255,255,.22);}
+
+    /* ── Login ── */
+    .login-wrap{max-width:420px;margin:72px auto;padding:0 20px;}
+    .login-header{text-align:center;margin-bottom:36px;}
+    .login-icon{font-size:2.8rem;margin-bottom:12px;}
+    .login-title{font-family:var(--serif);font-size:1.8rem;font-weight:600;color:var(--ink);margin-bottom:6px;}
+    .login-sub{font-size:.88rem;color:var(--ink-3);}
+    .login-card{background:var(--white);border:1px solid var(--line);border-radius:12px;padding:32px;}
+    .form-group{margin-bottom:18px;}
+    .form-group label{display:block;font-size:.82rem;font-weight:600;color:var(--ink-2);margin-bottom:7px;}
+    .form-group input{
+      width:100%;font-family:var(--mono);font-size:.95rem;letter-spacing:.5px;
+      border:1.5px solid var(--line);border-radius:7px;padding:12px 14px;
+      background:var(--paper);color:var(--ink);outline:none;
+      transition:border-color .2s,box-shadow .2s;
+    }
+    .form-group input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(26,74,58,.08);}
+    .btn-submit{
+      width:100%;background:var(--accent);color:#fff;border:none;border-radius:8px;
+      padding:14px;font-size:.95rem;font-weight:700;cursor:pointer;
+      font-family:var(--sans);transition:all .2s;
+    }
+    .btn-submit:hover{background:#153d2e;transform:translateY(-1px);}
+    .btn-submit:active{transform:scale(.98);}
+    .login-error{margin-top:14px;padding:10px 14px;background:var(--red-soft);border:1px solid rgba(192,57,43,.2);border-radius:7px;font-size:.84rem;color:var(--red);display:none;}
+    .login-error.show{display:block;}
+
+    /* ── 薪資結果 ── */
+    .result{display:none;max-width:720px;margin:0 auto;padding:40px 20px 80px;}
+    .result.show{display:block;animation:slideUp .35s ease both;}
+    @keyframes slideUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+
+    .result-header{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid var(--line);}
+    .teacher-info{}
+    .teacher-name{font-family:var(--serif);font-size:1.6rem;font-weight:600;color:var(--ink);}
+    .teacher-meta{font-size:.84rem;color:var(--ink-3);margin-top:3px;}
+    .payslip-meta{text-align:right;}
+    .payslip-label{font-family:var(--mono);font-size:.72rem;letter-spacing:1px;color:var(--ink-3);text-transform:uppercase;}
+    .payslip-month{font-family:var(--mono);font-size:1.2rem;font-weight:500;color:var(--ink);}
+
+    .section{background:var(--white);border:1px solid var(--line);border-radius:10px;margin-bottom:16px;overflow:hidden;}
+    .section-head{padding:14px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;}
+    .section-title{font-size:.84rem;font-weight:700;color:var(--ink-2);letter-spacing:.3px;}
+    .section-body{padding:4px 0;}
+
+    .pay-row{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--line);}
+    .pay-row:last-child{border-bottom:none;}
+    .pay-label{font-size:.9rem;color:var(--ink-2);}
+    .pay-amount{font-family:var(--mono);font-size:.98rem;font-weight:500;color:var(--ink);}
+    .pay-amount.positive{color:var(--accent);}
+    .pay-reason{font-size:.75rem;color:var(--ink-3);margin-top:3px;}
+
+    .total-section{background:var(--accent);border-radius:10px;padding:24px 28px;display:flex;align-items:center;justify-content:space-between;}
+    .total-label{color:rgba(255,255,255,.7);font-size:.88rem;}
+    .total-name{color:#fff;font-size:1rem;font-weight:600;margin-top:2px;}
+    .total-amount{font-family:var(--mono);font-size:2rem;font-weight:500;color:#fff;letter-spacing:1px;}
+
+    .no-bonus{padding:20px;text-align:center;font-size:.85rem;color:var(--ink-3);}
+    .btn-logout{margin-top:20px;background:none;border:1px solid var(--line);border-radius:8px;padding:10px 20px;font-size:.84rem;color:var(--ink-3);cursor:pointer;transition:.2s;}
+    .btn-logout:hover{border-color:var(--ink);color:var(--ink);}
+
+    @media(max-width:600px){
+      .nav{padding:14px 16px;}
+      .login-wrap{margin-top:40px;}
+      .result{padding:24px 14px 48px;}
+      .teacher-name{font-size:1.3rem;}
+      .total-amount{font-size:1.5rem;}
+    }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">御</div>
+  <span class="nav-title">御園國小 教師薪資查詢</span>
+  <a href="/" class="nav-back">← 返回首頁</a>
+</nav>
+
+<!-- 登入 -->
+<div class="login-wrap" id="login-section">
+  <div class="login-header">
+    <div class="login-icon">💼</div>
+    <h1 class="login-title">薪資查詢</h1>
+    <p class="login-sub">請輸入您的教師帳號與密碼</p>
+  </div>
+  <div class="login-card">
+    <div class="form-group">
+      <label>帳號</label>
+      <input type="text" id="username" placeholder="輸入帳號" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('password').focus()">
+    </div>
+    <div class="form-group">
+      <label>密碼</label>
+      <input type="password" id="password" placeholder="輸入密碼" autocomplete="current-password" onkeydown="if(event.key==='Enter')querySalary()">
+    </div>
+    <button class="btn-submit" onclick="querySalary()">查詢薪資</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<!-- 薪資結果 -->
+<div class="result" id="result-section">
+
+  <div class="result-header">
+    <div class="teacher-info">
+      <div class="teacher-name" id="r-name">—</div>
+      <div class="teacher-meta" id="r-meta">—</div>
+    </div>
+    <div class="payslip-meta">
+      <div class="payslip-label">薪資月份</div>
+      <div class="payslip-month" id="r-month">—</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><span class="section-title">基本薪資</span></div>
+    <div class="section-body">
+      <div class="pay-row">
+        <span class="pay-label">月固定工資</span>
+        <span class="pay-amount" id="r-base">$0</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <span class="section-title">額外獎金</span>
+      <span id="r-bonus-count" style="font-size:.78rem;color:var(--ink-3);"></span>
+    </div>
+    <div class="section-body" id="r-bonus-list">
+      <div class="no-bonus">本月暫無額外獎金</div>
+    </div>
+  </div>
+
+  <div class="total-section">
+    <div>
+      <div class="total-label">本月實領薪資</div>
+      <div class="total-name" id="r-total-name">—</div>
+    </div>
+    <div class="total-amount" id="r-total">$0</div>
+  </div>
+
+  <div style="text-align:center;margin-top:16px;">
+    <button class="btn-logout" onclick="resetQuery()">← 重新查詢</button>
+  </div>
+</div>
+
+<script>
+function fmt(n) {
+  return '$' + Number(n).toLocaleString()
+}
+
+async function querySalary() {
+  const username = document.getElementById('username').value.trim()
+  const password = document.getElementById('password').value.trim()
+  const errEl = document.getElementById('login-error')
+  errEl.classList.remove('show')
+
+  if (!username || !password) {
+    errEl.textContent = '請輸入帳號與密碼'
+    errEl.classList.add('show')
+    return
+  }
+
+  try {
+    const res = await fetch('/teacher-api/salary/query', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    })
+    const data = await res.json()
+    if (!data.success) {
+      errEl.textContent = data.message || '查詢失敗'
+      errEl.classList.add('show')
+      return
+    }
+    renderResult(data)
+  } catch (e) {
+    errEl.textContent = '網路錯誤，請稍後再試'
+    errEl.classList.add('show')
+  }
+}
+
+function renderResult(data) {
+  document.getElementById('login-section').style.display = 'none'
+  document.getElementById('result-section').classList.add('show')
+
+  document.getElementById('r-name').textContent = data.teacher.name
+  document.getElementById('r-meta').textContent = data.teacher.class_name ? `${data.teacher.class_name} 教師` : '教師'
+  document.getElementById('r-month').textContent = data.month
+
+  document.getElementById('r-base').textContent = fmt(data.base_salary)
+  document.getElementById('r-total').textContent = fmt(data.total)
+  document.getElementById('r-total-name').textContent = data.teacher.name
+
+  const bonusList = document.getElementById('r-bonus-list')
+  const bonusCount = document.getElementById('r-bonus-count')
+
+  if (!data.bonuses || data.bonuses.length === 0) {
+    bonusList.innerHTML = '<div class="no-bonus">本月暫無額外獎金</div>'
+    bonusCount.textContent = ''
+  } else {
+    bonusCount.textContent = `共 ${data.bonuses.length} 筆`
+    bonusList.innerHTML = data.bonuses.map(b => `
+      <div class="pay-row">
+        <div>
+          <div class="pay-label">獎金</div>
+          <div class="pay-reason">📌 ${escH(b.reason)}</div>
+        </div>
+        <span class="pay-amount positive">+${fmt(b.amount)}</span>
+      </div>`).join('')
+  }
+}
+
+function escH(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+}
+
+function resetQuery() {
+  document.getElementById('login-section').style.display = 'block'
+  document.getElementById('result-section').classList.remove('show')
+  document.getElementById('login-error').classList.remove('show')
+  document.getElementById('username').value = ''
+  document.getElementById('password').value = ''
+}
+</script>
+</body>
+</html>

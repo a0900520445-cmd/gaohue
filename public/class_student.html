@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>學生課堂 - 御園國小</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#f0f2f5;--white:#fff;--border:#e0e4ea;
+      --accent:#1a73e8;--accent-soft:#e8f0fe;
+      --green:#1e8c55;--green-soft:#e6f4ec;
+      --orange:#e65100;--orange-soft:#fff3e0;
+      --red:#d93025;--text:#202124;--text-2:#5f6368;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html,body{height:100%;overflow-x:hidden;}
+    body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);}
+
+    .topbar{height:56px;background:var(--white);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;position:sticky;top:0;z-index:50;}
+    .topbar-logo{width:34px;height:34px;background:var(--green);border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:15px;}
+    .topbar-title{font-size:1rem;font-weight:600;}
+    .topbar-user{margin-left:auto;font-size:.82rem;color:var(--text-2);display:flex;align-items:center;gap:12px;}
+    .btn-sm{background:none;border:1px solid var(--border);border-radius:6px;padding:6px 14px;font-size:.8rem;cursor:pointer;color:var(--text-2);font-family:'Noto Sans TC',sans-serif;}
+    .btn-sm:hover{background:var(--bg);}
+    .btn-primary{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:.88rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif;}
+    .btn-primary:hover{background:#1557b0;}
+
+    .main{max-width:860px;margin:0 auto;padding:28px 20px 60px;}
+
+    /* 課堂卡片 */
+    .classroom-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:20px;cursor:pointer;transition:box-shadow .2s;margin-bottom:12px;display:flex;align-items:center;gap:16px;}
+    .classroom-card:hover{box-shadow:0 2px 12px rgba(0,0,0,.1);}
+    .c-avatar{width:48px;height:48px;border-radius:10px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;}
+    .c-name{font-weight:700;font-size:1rem;}
+    .c-meta{font-size:.82rem;color:var(--text-2);margin-top:3px;}
+
+    /* 作業卡片 */
+    .assignment-card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:18px 20px;margin-bottom:10px;}
+    .a-header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px;}
+    .a-title{font-weight:700;font-size:.98rem;}
+    .a-due{font-size:.78rem;color:var(--text-2);}
+    .a-desc{font-size:.85rem;color:var(--text-2);margin-bottom:12px;line-height:1.55;}
+    .score-box{display:inline-flex;align-items:center;gap:6px;background:var(--green-soft);border-radius:8px;padding:6px 14px;font-size:.88rem;font-weight:700;color:var(--green);}
+    .pending-box{display:inline-flex;align-items:center;gap:6px;background:var(--orange-soft);border-radius:8px;padding:6px 14px;font-size:.82rem;color:var(--orange);}
+    .submit-area{margin-top:12px;border-top:1px solid var(--border);padding-top:12px;}
+    .submit-input{width:100%;border:1.5px solid var(--border);border-radius:7px;padding:10px 12px;font-size:.88rem;font-family:'Noto Sans TC',sans-serif;resize:vertical;min-height:80px;outline:none;}
+    .submit-input:focus{border-color:var(--accent);}
+    .submit-btn{margin-top:8px;background:var(--green);color:#fff;border:none;border-radius:7px;padding:8px 20px;font-size:.85rem;font-weight:600;cursor:pointer;font-family:'Noto Sans TC',sans-serif;}
+    .feedback-box{margin-top:8px;background:var(--accent-soft);border-radius:7px;padding:8px 12px;font-size:.82rem;color:var(--accent);}
+
+    /* 留言 */
+    .msg-list{max-height:360px;overflow-y:auto;margin-bottom:12px;}
+    .msg-item{margin-bottom:10px;display:flex;gap:10px;}
+    .msg-avatar{width:30px;height:30px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;color:var(--accent);flex-shrink:0;}
+    .msg-bubble{background:var(--bg);border-radius:0 10px 10px 10px;padding:8px 12px;max-width:82%;}
+    .msg-meta{font-size:.7rem;color:var(--text-2);margin-bottom:2px;}
+    .msg-text{font-size:.86rem;line-height:1.5;}
+    .msg-input-row{display:flex;gap:8px;border-top:1px solid var(--border);padding-top:12px;}
+    .msg-input{flex:1;border:1.5px solid var(--border);border-radius:24px;padding:9px 16px;font-size:.86rem;font-family:'Noto Sans TC',sans-serif;outline:none;}
+    .msg-input:focus{border-color:var(--accent);}
+    .msg-send{background:var(--accent);color:#fff;border:none;border-radius:50%;width:36px;height:36px;cursor:pointer;font-size:.9rem;flex-shrink:0;}
+
+    /* 頁面切換 */
+    .page{display:none;}
+    .page.active{display:block;}
+    .back-btn{display:inline-flex;align-items:center;gap:6px;color:var(--accent);cursor:pointer;font-size:.88rem;margin-bottom:18px;background:none;border:none;font-family:'Noto Sans TC',sans-serif;}
+    .back-btn:hover{text-decoration:underline;}
+    .tab-row{display:flex;gap:4px;border-bottom:2px solid var(--border);margin-bottom:20px;}
+    .tab{padding:10px 18px;font-size:.88rem;font-weight:600;cursor:pointer;color:var(--text-2);border-bottom:2px solid transparent;margin-bottom:-2px;}
+    .tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+    .section-title{font-size:1.15rem;font-weight:700;margin-bottom:16px;}
+    .card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;}
+    .card-title{font-weight:700;margin-bottom:14px;font-size:.95rem;}
+
+    /* 登入 */
+    .login-wrap{display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 56px);padding:20px;}
+    .login-card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:36px;width:100%;max-width:380px;}
+    .login-icon{text-align:center;font-size:2.6rem;margin-bottom:12px;}
+    .login-title{text-align:center;font-size:1.3rem;font-weight:700;margin-bottom:4px;}
+    .login-sub{text-align:center;font-size:.84rem;color:var(--text-2);margin-bottom:24px;}
+    .form-group{margin-bottom:14px;}
+    .form-label{font-size:.82rem;font-weight:600;color:var(--text-2);margin-bottom:6px;display:block;}
+    .form-input{width:100%;border:1.5px solid var(--border);border-radius:7px;padding:11px 12px;font-size:.9rem;font-family:'Noto Sans TC',sans-serif;outline:none;}
+    .form-input:focus{border-color:var(--accent);}
+    .err-text{margin-top:10px;color:var(--red);font-size:.84rem;display:none;}
+
+    @media(max-width:600px){.main{padding:16px 14px 40px;}.topbar{padding:0 14px;}}
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo">御</div>
+  <span class="topbar-title">學生課堂</span>
+  <div class="topbar-user" id="topbar-user" style="display:none;">
+    <span id="user-display">—</span>
+    <button class="btn-sm" onclick="logout()">登出</button>
+  </div>
+</div>
+
+<!-- 登入頁 -->
+<div class="login-wrap" id="login-page">
+  <div class="login-card">
+    <div class="login-icon">🎒</div>
+    <div class="login-title">學生登入</div>
+    <div class="login-sub">帳號與密碼皆為你的學號</div>
+    <div class="form-group">
+      <label class="form-label">學號（帳號）</label>
+      <input class="form-input" id="login-sid" placeholder="輸入學號" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="form-group">
+      <label class="form-label">密碼（同學號）</label>
+      <input class="form-input" type="password" id="login-pw" placeholder="輸入密碼" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn-primary" style="width:100%;padding:12px;" onclick="doLogin()">登入</button>
+    <div class="err-text" id="login-err"></div>
+  </div>
+</div>
+
+<!-- 主畫面 -->
+<div id="app-page" style="display:none;">
+  <div class="main">
+
+    <!-- 課堂列表 -->
+    <div class="page active" id="page-home">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+        <div class="section-title" style="margin:0;">我的課堂</div>
+        <button class="btn-primary" onclick="openJoin()">＋ 加入課堂</button>
+      </div>
+      <div id="classrooms-list">載入中...</div>
+    </div>
+
+    <!-- 課堂詳情 -->
+    <div class="page" id="page-detail">
+      <button class="back-btn" onclick="backToHome()">← 返回課堂列表</button>
+      <div style="margin-bottom:16px;">
+        <div class="section-title" id="d-name" style="margin-bottom:2px;">—</div>
+        <div style="font-size:.82rem;color:var(--text-2);">教師：<span id="d-teacher">—</span></div>
+      </div>
+      <div class="tab-row">
+        <div class="tab active" onclick="switchTab('assignments',this)">📋 作業</div>
+        <div class="tab" onclick="switchTab('messages',this)">💬 討論區</div>
+      </div>
+
+      <div id="tab-assignments">
+        <div id="assignments-list">載入中...</div>
+      </div>
+
+      <div id="tab-messages" style="display:none;">
+        <div class="card">
+          <div class="msg-list" id="msg-list"></div>
+          <div class="msg-input-row">
+            <input class="msg-input" id="msg-input" placeholder="輸入訊息…" onkeydown="if(event.key==='Enter')sendMsg()">
+            <button class="msg-send" onclick="sendMsg()">➤</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- 加入課堂 Modal -->
+<div id="join-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center;">
+  <div style="background:var(--white);border-radius:14px;padding:28px;width:100%;max-width:380px;">
+    <div style="font-size:1.05rem;font-weight:700;margin-bottom:18px;">加入課堂</div>
+    <div class="form-group">
+      <label class="form-label">課堂代碼</label>
+      <input class="form-input" id="join-code" placeholder="輸入老師提供的代碼" style="text-transform:uppercase;">
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px;">
+      <button class="btn-sm" onclick="closeJoin()">取消</button>
+      <button class="btn-primary" onclick="joinClassroom()">加入</button>
+    </div>
+    <div class="err-text" id="join-err"></div>
+  </div>
+</div>
+
+<script>
+let me = null
+let currentClassroomId = null
+let msgInterval = null
+
+function escH(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
+function fmtDate(d) { return d ? String(d).slice(0,10) : '' }
+async function api(url, method='GET', body=null) {
+  const opts = { method, headers:{'Content-Type':'application/json'}, credentials:'include' }
+  if (body) opts.body = JSON.stringify(body)
+  return (await fetch(url, opts)).json()
+}
+
+async function doLogin() {
+  const student_id = document.getElementById('login-sid').value.trim()
+  const password = document.getElementById('login-pw').value.trim()
+  const err = document.getElementById('login-err')
+  err.style.display = 'none'
+  const r = await api('/api/class/login','POST',{student_id, password})
+  if (r.success) { me = r.student; showApp() }
+  else { err.textContent = r.message || '學號或密碼錯誤'; err.style.display='block' }
+}
+
+function showApp() {
+  document.getElementById('login-page').style.display = 'none'
+  document.getElementById('app-page').style.display = 'block'
+  document.getElementById('topbar-user').style.display = 'flex'
+  document.getElementById('user-display').textContent = `${me.name}（${me.class_name}）`
+  loadClassrooms()
+}
+
+async function logout() {
+  await api('/api/class/logout','POST')
+  location.reload()
+}
+
+async function loadClassrooms() {
+  const r = await api('/api/class/classrooms')
+  const list = r.data || []
+  const el = document.getElementById('classrooms-list')
+  if (list.length === 0) {
+    el.innerHTML = '<div style="text-align:center;padding:48px 0;color:var(--text-2);">尚未加入任何課堂，點右上角「加入課堂」輸入老師的課堂代碼</div>'
+    return
+  }
+  el.innerHTML = list.map(c=>`
+    <div class="classroom-card" onclick="openClassroom(${c.id},'${escH(c.name)}','${escH(c.teacher_name)}')">
+      <div class="c-avatar">🏫</div>
+      <div>
+        <div class="c-name">${escH(c.name)}</div>
+        <div class="c-meta">教師：${escH(c.teacher_name)}</div>
+      </div>
+      <svg style="margin-left:auto;color:var(--text-2);" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,18 15,12 9,6"/></svg>
+    </div>`).join('')
+}
+
+function openClassroom(id, name, teacher) {
+  if (msgInterval) { clearInterval(msgInterval); msgInterval=null }
+  currentClassroomId = id
+  document.getElementById('d-name').textContent = name
+  document.getElementById('d-teacher').textContent = teacher
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'))
+  document.getElementById('page-detail').classList.add('active')
+  switchTab('assignments', document.querySelector('.tab'))
+  loadAssignments()
+  loadMessages()
+  msgInterval = setInterval(loadMessages, 8000)
+}
+
+function backToHome() {
+  if (msgInterval) { clearInterval(msgInterval); msgInterval=null }
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'))
+  document.getElementById('page-home').classList.add('active')
+}
+
+function switchTab(name, el) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'))
+  if(el) el.classList.add('active')
+  document.getElementById('tab-assignments').style.display = name==='assignments'?'block':'none'
+  document.getElementById('tab-messages').style.display = name==='messages'?'block':'none'
+  if(name==='messages') loadMessages()
+}
+
+async function loadAssignments() {
+  const r = await api(`/api/class/classrooms/${currentClassroomId}/assignments`)
+  const list = r.data || []
+  const el = document.getElementById('assignments-list')
+  if (list.length === 0) { el.innerHTML='<div style="text-align:center;padding:40px 0;color:var(--text-2);">老師尚未布置作業</div>'; return }
+  el.innerHTML = list.map(a=>{
+    const submitted = a.submitted_at != null
+    const scored = a.score != null
+    return `<div class="assignment-card">
+      <div class="a-header">
+        <div>
+          <div class="a-title">📝 ${escH(a.title)}</div>
+          ${a.due_date?`<div class="a-due">截止：${fmtDate(a.due_date)}</div>`:''}
+        </div>
+        ${scored?`<span class="score-badge">✅ ${a.score} 分</span>`:submitted?`<span class="pending-box">⏳ 待批改</span>`:``}
+      </div>
+      ${a.description?`<div class="a-desc">${escH(a.description)}</div>`:''}
+      ${a.feedback?`<div class="feedback-box">💬 老師評語：${escH(a.feedback)}</div>`:''}
+      <div class="submit-area">
+        <textarea class="submit-input" id="sub-${a.id}" placeholder="輸入你的作業內容或回答…">${escH(a.content||'')}</textarea>
+        <button class="submit-btn" onclick="submitAssignment(${a.id})">${submitted?'重新繳交':'繳交作業'}</button>
+      </div>
+    </div>`
+  }).join('')
+}
+
+async function submitAssignment(id) {
+  const content = document.getElementById('sub-'+id)?.value?.trim()
+  if (!content) { alert('請填寫作業內容後再繳交'); return }
+  const r = await api(`/api/class/assignments/${id}/submit`,'POST',{content})
+  if (r.success) { alert('✅ 作業已繳交！'); loadAssignments() }
+  else alert('繳交失敗，請稍後再試')
+}
+
+async function loadMessages() {
+  const r = await api(`/api/class/classrooms/${currentClassroomId}/messages`)
+  const msgs = r.data || []
+  const el = document.getElementById('msg-list')
+  if (!el) return
+  const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 20
+  el.innerHTML = msgs.map(m=>`
+    <div class="msg-item">
+      <div class="msg-avatar">${m.sender_role==='teacher'?'師':escH(m.sender_name?.slice(-1)||'生')}</div>
+      <div class="msg-bubble" style="${m.sender_role==='teacher'?'background:var(--accent-soft);':''}">
+        <div class="msg-meta">${m.sender_role==='teacher'?'👩‍🏫 ':''}<strong>${escH(m.sender_name)}</strong></div>
+        <div class="msg-text">${escH(m.content)}</div>
+      </div>
+    </div>`).join('')
+  if (atBottom) el.scrollTop = el.scrollHeight
+}
+
+async function sendMsg() {
+  const input = document.getElementById('msg-input')
+  const content = input.value.trim()
+  if (!content) return
+  input.value = ''
+  await api(`/api/class/classrooms/${currentClassroomId}/messages`,'POST',{content})
+  loadMessages()
+}
+
+function openJoin() {
+  document.getElementById('join-code').value=''
+  document.getElementById('join-err').style.display='none'
+  document.getElementById('join-overlay').style.display='flex'
+}
+function closeJoin() { document.getElementById('join-overlay').style.display='none' }
+async function joinClassroom() {
+  const code = document.getElementById('join-code').value.trim()
+  if (!code) return
+  const r = await api('/api/class/join','POST',{code})
+  if (r.success) { closeJoin(); loadClassrooms() }
+  else { const e=document.getElementById('join-err'); e.textContent=r.message||'加入失敗'; e.style.display='block' }
+}
+
+// 初始化：嘗試恢復 session
+;(async()=>{
+  const r = await api('/api/class/me')
+  if (r.success) { me = r.student; showApp() }
+})()
+</script>
+</body>
+</html>
