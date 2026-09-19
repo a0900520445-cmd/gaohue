@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>教師課堂 - 御園國小</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&family=Noto+Serif+TC:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#f0f2f5;--white:#fff;--border:#e0e4ea;
+      --accent:#1a73e8;--accent-soft:#e8f0fe;
+      --green:#1e8c55;--green-soft:#e6f4ec;
+      --red:#d93025;--text:#202124;--text-2:#5f6368;
+      --sidebar:280px;
+      --font:'Noto Sans TC',sans-serif;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html,body{height:100%;overflow:hidden;}
+    body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex;flex-direction:column;}
+
+    /* ── Top bar ── */
+    .topbar{
+      height:56px;background:var(--white);border-bottom:1px solid var(--border);
+      display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0;
+      position:sticky;top:0;z-index:50;
+    }
+    .topbar-logo{width:34px;height:34px;background:var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:15px;flex-shrink:0;}
+    .topbar-title{font-size:1rem;font-weight:600;color:var(--text);}
+    .topbar-user{margin-left:auto;font-size:.82rem;color:var(--text-2);display:flex;align-items:center;gap:12px;}
+    .btn-sm{background:none;border:1px solid var(--border);border-radius:6px;padding:6px 14px;font-size:.8rem;cursor:pointer;color:var(--text-2);transition:.15s;font-family:var(--font);}
+    .btn-sm:hover{background:var(--bg);}
+
+    /* ── Layout ── */
+    .layout{display:flex;flex:1;overflow:hidden;}
+
+    /* ── Sidebar ── */
+    .sidebar{
+      width:var(--sidebar);background:var(--white);border-right:1px solid var(--border);
+      display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0;
+    }
+    .sidebar-section{padding:10px 12px 4px;font-size:.72rem;font-weight:700;color:var(--text-2);letter-spacing:.5px;text-transform:uppercase;}
+    .sidebar-item{
+      display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:0 24px 24px 0;margin:2px 8px 2px 0;
+      cursor:pointer;font-size:.9rem;color:var(--text);transition:background .15s;
+    }
+    .sidebar-item:hover{background:var(--bg);}
+    .sidebar-item.active{background:var(--accent-soft);color:var(--accent);font-weight:600;}
+    .sidebar-item .icon{width:20px;text-align:center;font-size:1rem;}
+    .classroom-item{
+      padding:8px 14px 8px 20px;cursor:pointer;font-size:.87rem;color:var(--text-2);
+      border-radius:0 24px 24px 0;margin:1px 8px 1px 0;transition:background .15s;
+      display:flex;align-items:center;justify-content:space-between;
+    }
+    .classroom-item:hover{background:var(--bg);}
+    .classroom-item.active{background:var(--accent-soft);color:var(--accent);font-weight:600;}
+    .classroom-code{font-size:.7rem;color:var(--text-2);background:var(--bg);padding:2px 6px;border-radius:4px;font-family:monospace;}
+
+    /* ── Main ── */
+    .main{flex:1;overflow-y:auto;padding:0;}
+    .page-section{display:none;padding:24px 28px;}
+    .page-section.active{display:block;}
+
+    /* ── Cards ── */
+    .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;}
+    .page-title{font-size:1.3rem;font-weight:700;color:var(--text);}
+    .btn-primary{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:.88rem;font-weight:600;cursor:pointer;font-family:var(--font);transition:.15s;}
+    .btn-primary:hover{background:#1557b0;}
+    .btn-danger{background:var(--red);color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:.78rem;cursor:pointer;font-family:var(--font);}
+
+    .card{background:var(--white);border:1px solid var(--border);border-radius:12px;margin-bottom:16px;overflow:hidden;}
+    .card-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+    .card-title{font-weight:600;font-size:.95rem;}
+    .card-body{padding:16px 20px;}
+
+    /* 課堂列表卡片 */
+    .classroom-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:20px;cursor:pointer;transition:box-shadow .2s;margin-bottom:12px;display:flex;align-items:center;gap:16px;}
+    .classroom-card:hover{box-shadow:0 2px 12px rgba(0,0,0,.1);}
+    .classroom-avatar{width:48px;height:48px;border-radius:10px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;}
+    .classroom-name{font-weight:700;font-size:1rem;}
+    .classroom-meta{font-size:.82rem;color:var(--text-2);margin-top:3px;}
+    .badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:.72rem;font-weight:600;}
+    .badge-blue{background:var(--accent-soft);color:var(--accent);}
+    .badge-green{background:var(--green-soft);color:var(--green);}
+
+    /* 作業列表 */
+    .assignment-row{padding:14px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+    .assignment-row:last-child{border-bottom:none;}
+    .a-icon{width:36px;height:36px;border-radius:8px;background:var(--green-soft);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+    .a-title{font-weight:600;font-size:.9rem;}
+    .a-meta{font-size:.78rem;color:var(--text-2);margin-top:2px;}
+    .a-actions{margin-left:auto;display:flex;gap:6px;}
+
+    /* 成員 */
+    .member-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+    .member-row:last-child{border-bottom:none;}
+    .member-avatar{width:32px;height:32px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-weight:600;color:var(--accent);font-size:.85rem;flex-shrink:0;}
+    .member-name{font-size:.9rem;font-weight:600;}
+    .member-class{font-size:.78rem;color:var(--text-2);}
+
+    /* 留言 */
+    .msg-list{max-height:400px;overflow-y:auto;padding:8px 0;}
+    .msg-item{margin-bottom:12px;display:flex;gap:10px;}
+    .msg-avatar{width:32px;height:32px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:700;color:var(--accent);flex-shrink:0;}
+    .msg-bubble{background:var(--bg);border-radius:0 10px 10px 10px;padding:8px 14px;max-width:80%;}
+    .msg-meta{font-size:.72rem;color:var(--text-2);margin-bottom:3px;}
+    .msg-text{font-size:.88rem;line-height:1.55;}
+    .msg-input-row{display:flex;gap:8px;margin-top:12px;border-top:1px solid var(--border);padding-top:12px;}
+    .msg-input{flex:1;border:1.5px solid var(--border);border-radius:24px;padding:10px 16px;font-size:.88rem;font-family:var(--font);outline:none;}
+    .msg-input:focus{border-color:var(--accent);}
+    .msg-send{background:var(--accent);color:#fff;border:none;border-radius:50%;width:38px;height:38px;cursor:pointer;font-size:1rem;flex-shrink:0;}
+
+    /* 作業批改 Modal */
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;display:none;align-items:center;justify-content:center;}
+    .overlay.open{display:flex;}
+    .modal{background:var(--white);border-radius:14px;width:100%;max-width:580px;max-height:90vh;overflow-y:auto;padding:28px;}
+    .modal-title{font-size:1.1rem;font-weight:700;margin-bottom:20px;}
+    .modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
+    .form-group{margin-bottom:14px;}
+    .form-label{font-size:.82rem;font-weight:600;color:var(--text-2);margin-bottom:6px;display:block;}
+    .form-input{width:100%;border:1.5px solid var(--border);border-radius:7px;padding:10px 12px;font-size:.9rem;font-family:var(--font);outline:none;}
+    .form-input:focus{border-color:var(--accent);}
+    .sub-row{padding:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+    .sub-row:last-child{border-bottom:none;}
+    .score-badge{font-weight:700;font-size:.9rem;color:var(--accent);}
+
+    /* 題庫 */
+    .quiz-filter{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;}
+    .quiz-filter select{border:1.5px solid var(--border);border-radius:7px;padding:8px 12px;font-size:.88rem;font-family:var(--font);background:var(--white);cursor:pointer;outline:none;}
+    .quiz-filter select:focus{border-color:var(--accent);}
+    .question-card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:18px 20px;margin-bottom:12px;}
+    .q-number{font-size:.75rem;font-weight:700;color:var(--text-2);margin-bottom:6px;}
+    .q-text{font-size:.95rem;line-height:1.6;margin-bottom:12px;}
+    .q-options{display:flex;flex-direction:column;gap:6px;}
+    .q-opt{padding:8px 14px;border-radius:7px;font-size:.88rem;background:var(--bg);border:1px solid var(--border);}
+    .q-opt.correct{background:var(--green-soft);border-color:var(--green);color:var(--green);font-weight:600;}
+
+    @media(max-width:768px){
+      .sidebar{width:220px;}
+      .page-section{padding:16px;}
+    }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo">御</div>
+  <span class="topbar-title">教師課堂系統</span>
+  <div class="topbar-user">
+    <span id="user-display">—</span>
+    <button class="btn-sm" onclick="changePassword()">修改密碼</button>
+    <button class="btn-sm" onclick="logout()">登出</button>
+  </div>
+</div>
+
+<div class="layout" id="app" style="display:none;">
+  <div class="sidebar" id="sidebar">
+    <div style="padding:16px 14px 8px;">
+      <div style="font-size:.78rem;color:var(--text-2);">已登入身份</div>
+      <div style="font-weight:700;font-size:.95rem;margin-top:2px;" id="sb-name">—</div>
+      <div style="font-size:.78rem;color:var(--text-2);margin-top:2px;" id="sb-class">—</div>
+    </div>
+    <div class="sidebar-section">主選單</div>
+    <div class="sidebar-item active" onclick="showPage('classrooms',this)"><span class="icon">🏫</span> 我的課堂</div>
+    <div class="sidebar-item" onclick="showPage('quiz',this)"><span class="icon">📚</span> 未來航空站題庫</div>
+    <div class="sidebar-item" onclick="showPage('points',this)"><span class="icon">⭐</span> 學生點數管理</div>
+
+    <div class="sidebar-section" style="margin-top:8px;">我的課堂</div>
+    <div id="classroom-list-sidebar"></div>
+  </div>
+
+  <div class="main">
+    <!-- 課堂總覽 -->
+    <div class="page-section active" id="page-classrooms">
+      <div class="page-header">
+        <span class="page-title">我的課堂</span>
+        <button class="btn-primary" onclick="openCreateClassroom()">＋ 建立課堂</button>
+      </div>
+      <div id="classrooms-grid">載入中...</div>
+    </div>
+
+    <!-- 課堂詳情 -->
+    <div class="page-section" id="page-classroom-detail">
+      <div class="page-header">
+        <div>
+          <div class="page-title" id="detail-title">—</div>
+          <div style="font-size:.82rem;color:var(--text-2);margin-top:3px;">代碼：<span id="detail-code" style="font-family:monospace;font-weight:700;letter-spacing:1px;"></span></div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-primary" onclick="openAddAssignment()">＋ 布置作業</button>
+          <button class="btn-sm" onclick="openAddMember()">＋ 加入學生</button>
+        </div>
+      </div>
+
+      <!-- 作業 -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-head"><span class="card-title">📋 作業</span></div>
+        <div class="card-body" id="assignments-list">載入中...</div>
+      </div>
+
+      <!-- 成員 -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-head"><span class="card-title">👥 學生名單</span></div>
+        <div class="card-body" id="members-list">載入中...</div>
+      </div>
+
+      <!-- 留言 -->
+      <div class="card">
+        <div class="card-head"><span class="card-title">💬 課堂討論</span></div>
+        <div class="card-body">
+          <div class="msg-list" id="msg-list">載入中...</div>
+          <div class="msg-input-row">
+            <input class="msg-input" id="msg-input" placeholder="輸入訊息..." onkeydown="if(event.key==='Enter')sendMsg()">
+            <button class="msg-send" onclick="sendMsg()">➤</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- 點數管理 -->
+    <div class="page-section" id="page-points">
+      <div class="page-header">
+        <span class="page-title">⭐ 學生點數管理</span>
+      </div>
+
+      <!-- 單一加點 -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-head"><span class="card-title">➕ 新增加點記錄</span></div>
+        <div class="card-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+            <div>
+              <label class="form-label">學號 *</label>
+              <input class="form-input" id="pt-sid" placeholder="輸入學號">
+            </div>
+            <div>
+              <label class="form-label">點數 *（可輸入負數）</label>
+              <input class="form-input" type="number" id="pt-pts" placeholder="例：5 或 -3">
+            </div>
+          </div>
+          <div style="margin-bottom:12px;">
+            <label class="form-label">原因（選填）</label>
+            <input class="form-input" id="pt-reason" placeholder="加點原因">
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn-primary" onclick="teacherAddPoint()">✚ 新增加點</button>
+            <button class="btn-primary" id="bulk-btn" style="background:var(--green);display:none;" onclick="teacherBulkPoint()">🏫 整班加點（<span id="bulk-class-label">—</span>）</button>
+          </div>
+          <div id="pt-alert" style="margin-top:10px;font-size:.84rem;display:none;"></div>
+        </div>
+      </div>
+
+      <!-- 學生列表 -->
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">學生點數總覽</span>
+          <input type="text" placeholder="搜尋姓名或學號" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:.82rem;" oninput="filterPtStudents(this.value)">
+        </div>
+        <div style="overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;font-size:.88rem;" id="pt-table">
+            <thead style="background:var(--bg);">
+              <tr>
+                <th style="padding:10px 14px;text-align:left;font-weight:600;color:var(--text-2);">學號</th>
+                <th style="padding:10px 14px;text-align:left;font-weight:600;color:var(--text-2);">姓名</th>
+                <th style="padding:10px 14px;text-align:left;font-weight:600;color:var(--text-2);">班級</th>
+                <th style="padding:10px 14px;text-align:left;font-weight:600;color:var(--text-2);">點數</th>
+                <th style="padding:10px 14px;text-align:left;font-weight:600;color:var(--text-2);">獎懲</th>
+                <th style="padding:10px 14px;text-align:left;font-weight:600;color:var(--text-2);">快速加點</th>
+              </tr>
+            </thead>
+            <tbody id="pt-tbody"><tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-2);">載入中...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 題庫 -->
+    <div class="page-section" id="page-quiz">
+      <div class="page-header"><span class="page-title">📚 未來航空站題庫</span></div>
+      <div class="quiz-filter">
+        <select id="q-grade" onchange="loadQuiz()">
+          <option value="1">一年級</option>
+          <option value="2">二年級</option>
+        </select>
+        <select id="q-subject" onchange="loadQuiz()">
+          <option value="math">數學</option>
+          <option value="chinese">國語</option>
+          <option value="life">生活</option>
+        </select>
+        <select id="q-range" onchange="loadQuiz()">
+          <option value="1">第一單元</option>
+          <option value="2">第二單元</option>
+          <option value="3">第三單元</option>
+          <option value="4">第四單元</option>
+        </select>
+      </div>
+      <div id="quiz-list">選擇年級、科目與單元即可查看題目</div>
+    </div>
+  </div>
+</div>
+
+<!-- 登入 -->
+<div id="login-page" style="display:flex;align-items:center;justify-content:center;flex:1;padding:20px;">
+  <div style="background:var(--white);border:1px solid var(--border);border-radius:14px;padding:36px;width:100%;max-width:380px;">
+    <div style="text-align:center;margin-bottom:28px;">
+      <div style="font-size:2.5rem;margin-bottom:10px;">👨‍🏫</div>
+      <div style="font-size:1.3rem;font-weight:700;">教師登入</div>
+      <div style="font-size:.84rem;color:var(--text-2);margin-top:4px;">御園國小教師課堂系統</div>
+    </div>
+    <div style="margin-bottom:14px;">
+      <label style="font-size:.82rem;font-weight:600;color:var(--text-2);display:block;margin-bottom:6px;">帳號</label>
+      <input class="form-input" id="login-user" placeholder="輸入教師帳號" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div style="margin-bottom:20px;">
+      <label style="font-size:.82rem;font-weight:600;color:var(--text-2);display:block;margin-bottom:6px;">密碼</label>
+      <input class="form-input" type="password" id="login-pass" placeholder="輸入密碼" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn-primary" style="width:100%;padding:12px;" onclick="doLogin()">登入</button>
+    <div id="login-err" style="margin-top:10px;color:var(--red);font-size:.84rem;display:none;"></div>
+  </div>
+</div>
+
+<!-- Modals -->
+<div class="overlay" id="modal-create-classroom">
+  <div class="modal">
+    <div class="modal-title">建立新課堂</div>
+    <div class="form-group"><label class="form-label">課堂名稱 *</label><input class="form-input" id="new-classroom-name" placeholder="例：101班國語課"></div>
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="closeModal('modal-create-classroom')">取消</button>
+      <button class="btn-primary" onclick="createClassroom()">建立</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="modal-add-assignment">
+  <div class="modal">
+    <div class="modal-title">布置作業</div>
+    <div class="form-group"><label class="form-label">作業標題 *</label><input class="form-input" id="a-title" placeholder="輸入作業名稱"></div>
+    <div class="form-group"><label class="form-label">說明</label><textarea class="form-input" id="a-desc" rows="3" placeholder="作業說明（選填）" style="resize:vertical;"></textarea></div>
+    <div class="form-group"><label class="form-label">截止日期</label><input class="form-input" type="date" id="a-due"></div>
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="closeModal('modal-add-assignment')">取消</button>
+      <button class="btn-primary" onclick="addAssignment()">布置</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="modal-add-member">
+  <div class="modal">
+    <div class="modal-title">加入學生</div>
+    <div class="form-group"><label class="form-label">學號</label><input class="form-input" id="new-member-sid" placeholder="輸入學號，例：10101"></div>
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="closeModal('modal-add-member')">取消</button>
+      <button class="btn-primary" onclick="addMember()">加入</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="modal-grade">
+  <div class="modal">
+    <div class="modal-title" id="grade-title">批改作業</div>
+    <div id="submissions-list" style="margin-bottom:16px;"></div>
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="closeModal('modal-grade')">關閉</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="modal-pw">
+  <div class="modal">
+    <div class="modal-title">修改密碼</div>
+    <div class="form-group"><label class="form-label">舊密碼</label><input class="form-input" type="password" id="old-pw" placeholder="輸入舊密碼"></div>
+    <div class="form-group"><label class="form-label">新密碼</label><input class="form-input" type="password" id="new-pw" placeholder="輸入新密碼（至少 4 個字元）"></div>
+    <div id="pw-err" style="color:var(--red);font-size:.84rem;display:none;margin-bottom:8px;"></div>
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="closeModal('modal-pw')">取消</button>
+      <button class="btn-primary" onclick="doChangePw()">確認修改</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let me = null
+let currentClassroomId = null
+let classrooms = []
+let msgInterval = null
+
+const QUIZ_DB = {
+  math: {
+    1: {
+      1: [
+        { q:'1 + 2 = ?', opts:['1','3','4','5'], ans:1 },
+        { q:'5 - 3 = ?', opts:['1','2','3','4'], ans:1 },
+        { q:'哪個數字最大？', opts:['3','7','5','2'], ans:1 },
+        { q:'2 × 3 = ?', opts:['5','6','7','8'], ans:1 },
+        { q:'10 ÷ 2 = ?', opts:['3','4','5','6'], ans:2 },
+      ],
+      2:[
+        { q:'4 + 6 = ?', opts:['8','9','10','11'], ans:2 },
+        { q:'12 - 5 = ?', opts:['5','6','7','8'], ans:2 },
+        { q:'3 × 4 = ?', opts:['10','12','14','16'], ans:1 },
+        { q:'15 ÷ 3 = ?', opts:['3','4','5','6'], ans:2 },
+        { q:'個位數「7」代表幾個一？', opts:['5','6','7','8'], ans:2 },
+      ],
+      3:[
+        { q:'20 + 35 = ?', opts:['45','50','55','60'], ans:2 },
+        { q:'50 - 28 = ?', opts:['20','22','24','26'], ans:1 },
+        { q:'5 × 6 = ?', opts:['25','30','35','40'], ans:1 },
+        { q:'24 ÷ 4 = ?', opts:['5','6','7','8'], ans:1 },
+        { q:'一打等於幾個？', opts:['10','12','14','16'], ans:1 },
+      ],
+      4:[
+        { q:'100 以內最大的奇數是？', opts:['97','99','95','93'], ans:1 },
+        { q:'7 × 8 = ?', opts:['54','56','58','60'], ans:1 },
+        { q:'48 ÷ 6 = ?', opts:['6','7','8','9'], ans:2 },
+        { q:'三角形有幾個角？', opts:['2','3','4','5'], ans:1 },
+        { q:'一週有幾天？', opts:['5','6','7','8'], ans:2 },
+      ]
+    },
+    2: {
+      1:[
+        { q:'199 + 1 = ?', opts:['199','200','201','210'], ans:1 },
+        { q:'300 - 150 = ?', opts:['100','150','200','250'], ans:1 },
+        { q:'9 × 9 = ?', opts:['72','81','90','99'], ans:1 },
+        { q:'56 ÷ 7 = ?', opts:['6','7','8','9'], ans:2 },
+        { q:'最小的兩位數是？', opts:['9','10','11','12'], ans:1 },
+      ],
+      2:[
+        { q:'1/2 + 1/2 = ?', opts:['1/2','1','3/2','2'], ans:1 },
+        { q:'正方形有幾個邊？', opts:['3','4','5','6'], ans:1 },
+        { q:'一小時有幾分鐘？', opts:['30','45','60','90'], ans:2 },
+        { q:'500 + 250 = ?', opts:['650','700','750','800'], ans:2 },
+        { q:'100 ÷ 4 = ?', opts:['20','25','30','35'], ans:1 },
+      ],
+      3:[
+        { q:'1000 - 1 = ?', opts:['998','999','1000','1001'], ans:1 },
+        { q:'4 × 25 = ?', opts:['80','90','100','110'], ans:2 },
+        { q:'長方形的對邊關係是？', opts:['不相等','相等','垂直','平行'], ans:1 },
+        { q:'一年有幾個月？', opts:['10','11','12','13'], ans:2 },
+        { q:'最小的三位數是？', opts:['99','100','101','110'], ans:1 },
+      ],
+      4:[
+        { q:'36 ÷ 9 = ?', opts:['3','4','5','6'], ans:1 },
+        { q:'7 + 8 × 2 = ?', opts:['17','23','30','30'], ans:1 },
+        { q:'三角形面積 = 底 × 高 ÷ ?', opts:['1','2','3','4'], ans:1 },
+        { q:'500 公克等於多少公斤？', opts:['0.05','0.5','5','50'], ans:1 },
+        { q:'一打有幾個？', opts:['10','12','20','24'], ans:1 },
+      ]
+    }
+  },
+  chinese: {
+    1: {
+      1:[
+        { q:'「大」的注音是？', opts:['ㄉㄚˋ','ㄊㄚˋ','ㄉㄜ','ㄊㄜ'], ans:0 },
+        { q:'「小」的反義詞是？', opts:['中','大','長','高'], ans:1 },
+        { q:'「貓」是哪一類動物？', opts:['鳥類','魚類','哺乳類','爬蟲類'], ans:2 },
+        { q:'「日」的部首是？', opts:['月','日','土','火'], ans:1 },
+        { q:'「上、中、下」哪個在最底？', opts:['上','中','下','都不是'], ans:2 },
+      ],
+      2:[
+        { q:'「ㄈ」在注音裡是哪一類？', opts:['聲母','韻母','聲調','結合韻'], ans:0 },
+        { q:'哪個字最多筆劃？', opts:['一','二','三','四'], ans:3 },
+        { q:'「春、夏、秋、冬」共有幾個字？', opts:['3','4','5','6'], ans:1 },
+        { q:'「媽」的部首是？', opts:['女','馬','毛','木'], ans:0 },
+        { q:'下面哪個是形容詞？「跑、美麗、書、吃」', opts:['跑','美麗','書','吃'], ans:1 },
+      ],
+      3:[
+        { q:'「他」換成女生應該用？', opts:['它','她','牠','祂'], ans:1 },
+        { q:'「書包、鉛筆、橡皮擦」是屬於什麼？', opts:['食物','文具','玩具','衣服'], ans:1 },
+        { q:'「一石二鳥」意思是？', opts:['石頭很重','一次達成兩個目標','有兩隻鳥','石頭打鳥'], ans:1 },
+        { q:'「ㄤ」是幾個注音符號組成？', opts:['1','2','3','4'], ans:0 },
+        { q:'日記的開頭要寫什麼？', opts:['姓名','日期和天氣','結語','標題'], ans:1 },
+      ],
+      4:[
+        { q:'「愛護地球」的近義詞是？', opts:['破壞環境','保護環境','污染河川','砍伐森林'], ans:1 },
+        { q:'「一字千金」比喻什麼？', opts:['文字很值錢','文章很有價值','字很多','錢很多'], ans:1 },
+        { q:'句子結尾用什麼標點？', opts:[',','。','！','？'], ans:1 },
+        { q:'「他高興得跳起來」的「得」是什麼用法？', opts:['結果補語','程度補語','可能補語','趨向補語'], ans:1 },
+        { q:'「春眠不覺曉」下一句？', opts:['處處聞啼鳥','花落知多少','夜來風雨聲','春風吹又生'], ans:0 },
+      ]
+    },
+    2: {
+      1:[
+        { q:'「蝴蝶」的「蝶」是什麼部首？', opts:['虫','木','草','羽'], ans:0 },
+        { q:'「日月潭」在台灣哪個縣市？', opts:['台中','南投','花蓮','台南'], ans:1 },
+        { q:'哪個是量詞？「一_蘋果」', opts:['個','大','紅','甜'], ans:0 },
+        { q:'「床前明月光」是誰的詩？', opts:['杜甫','李白','蘇軾','白居易'], ans:1 },
+        { q:'「馬到成功」屬於什麼類型？', opts:['成語','諺語','歇後語','俗語'], ans:0 },
+      ],
+      2:[
+        { q:'「萬紫千紅」比喻什麼？', opts:['春天花開很多','顏色很少','春天很冷','花很貴'], ans:0 },
+        { q:'書信的「敬上」是放在哪裡？', opts:['開頭','正文','結尾署名','日期後'], ans:2 },
+        { q:'「他們」屬於幾人稱代名詞？', opts:['第一人稱','第二人稱','第三人稱','都不是'], ans:2 },
+        { q:'「不恥下問」中「恥」的意思？', opts:['驕傲','感到羞恥','不好','害怕'], ans:1 },
+        { q:'哪個是錯別字？「帶領/待命/戴帽子/大方」', opts:['帶領','待命','戴帽子','大方'], ans:2 },
+      ],
+      3:[
+        { q:'「逆境使人成長」屬於哪種句型？', opts:['並列句','因果句','主題句','轉折句'], ans:2 },
+        { q:'日記中「晴時多雲」屬於哪種描述？', opts:['日期','天氣','事件','感想'], ans:1 },
+        { q:'「打草驚蛇」中誰打草？', opts:['蛇','人','鳥','馬'], ans:1 },
+        { q:'文章的「主旨」指的是？', opts:['開頭','中心思想','結尾','段落'], ans:1 },
+        { q:'「ㄩ」是幾劃？', opts:['1','2','3','4'], ans:0 },
+      ],
+      4:[
+        { q:'「功虧一簣」意思是？', opts:['最後關頭失敗','一開始就放棄','慢慢來','很努力'], ans:0 },
+        { q:'「的、地、得」中，修飾動詞的是？', opts:['的','地','得','都可以'], ans:1 },
+        { q:'寫作文開頭最好的方式？', opts:['直接寫結論','引用名言或問句','隨便寫','先寫自己名字'], ans:1 },
+        { q:'「聲東擊西」用於什麼情境？', opts:['聲音很大','轉移對方注意力','向東走','打人'], ans:1 },
+        { q:'「春去秋來」是什麼修辭法？', opts:['比喻','擬人','對偶','排比'], ans:2 },
+      ]
+    }
+  },
+  life: {
+    1: {
+      1:[
+        { q:'早上起床後要做什麼第一件事？', opts:['吃早餐','刷牙洗臉','玩遊戲','看電視'], ans:1 },
+        { q:'過馬路時要看什麼？', opts:['手機','紅綠燈','商店','天空'], ans:1 },
+        { q:'垃圾應該丟在哪裡？', opts:['地上','河裡','垃圾桶','隨便'], ans:2 },
+        { q:'圖書館裡應該怎樣？', opts:['大聲說話','安靜閱讀','跑來跑去','吃東西'], ans:1 },
+        { q:'下雨天出門要帶什麼？', opts:['玩具','雨傘','課本','零食'], ans:1 },
+      ],
+      2:[
+        { q:'春天的代表花是？', opts:['菊花','梅花','櫻花','荷花'], ans:2 },
+        { q:'植物生長需要什麼？', opts:['沙子','陽光和水','玩具','音樂'], ans:1 },
+        { q:'地球上最多的是什麼？', opts:['陸地','淡水','鹹水','空氣'], ans:3 },
+        { q:'最省電的燈泡是？', opts:['鎢絲燈','日光燈','LED燈','蠟燭'], ans:2 },
+        { q:'颱風來臨時應該？', opts:['去海邊玩','留在室內','開窗通風','騎腳踏車'], ans:1 },
+      ],
+      3:[
+        { q:'台灣的國慶日是幾月幾號？', opts:['1月1日','3月8日','9月28日','10月10日'], ans:3 },
+        { q:'健康飲食應多吃？', opts:['蔬果','炸物','糖果','汽水'], ans:0 },
+        { q:'廢電池應如何處理？', opts:['丟垃圾桶','放回原處','送至回收站','沖入馬桶'], ans:2 },
+        { q:'地震時，在室內應？', opts:['跑到戶外','躲在桌子下','打電話','開電視'], ans:1 },
+        { q:'節約用水的好方法？', opts:['洗澡用浴缸','不關水龍頭','用洗米水澆花','隨意用水'], ans:2 },
+      ],
+      4:[
+        { q:'台灣屬於什麼氣候？', opts:['寒帶','溫帶','熱帶','亞熱帶'], ans:3 },
+        { q:'海洋垃圾最大的危害是？', opts:['讓海水變藍','危害海洋生物','讓海水變深','無危害'], ans:1 },
+        { q:'空氣污染主要來源？', opts:['植物','工廠廢氣','下雨','打雷'], ans:1 },
+        { q:'感冒時正確做法？', opts:['繼續上課','戴口罩休息就醫','不理會','劇烈運動'], ans:1 },
+        { q:'資源回收「紙類」不包括？', opts:['報紙','書本','衛生紙','紙箱'], ans:2 },
+      ]
+    },
+    2:{
+      1:[
+        { q:'社區中誰負責治安？', opts:['醫生','警察','老師','農夫'], ans:1 },
+        { q:'消防車的顏色是？', opts:['藍色','白色','紅色','黃色'], ans:2 },
+        { q:'台灣最高的山是？', opts:['阿里山','玉山','雪山','合歡山'], ans:1 },
+        { q:'人體最大的器官是？', opts:['心臟','大腦','皮膚','肝臟'], ans:2 },
+        { q:'節能減碳可以減少什麼？', opts:['用電','碳排放','花費','時間'], ans:1 },
+      ],
+      2:[
+        { q:'「再生能源」包括？', opts:['煤炭','石油','太陽能','天然氣'], ans:2 },
+        { q:'台灣四面環什麼？', opts:['陸地','山','海','沙漠'], ans:2 },
+        { q:'道路中間的黃線是什麼意思？', opts:['停車線','分隔線','行人線','轉彎線'], ans:1 },
+        { q:'食物腐壞的原因是？', opts:['空氣','細菌繁殖','光線','溫度高'], ans:1 },
+        { q:'水的沸點是幾度？', opts:['90°C','95°C','100°C','110°C'], ans:2 },
+      ],
+      3:[
+        { q:'台灣的原住民族有幾族（官方認定）？', opts:['14','16','18','20'], ans:1 },
+        { q:'「光合作用」植物利用什麼製造養分？', opts:['水和土','陽光和CO₂','空氣和土','水和空氣'], ans:1 },
+        { q:'人類活動最主要造成的全球問題？', opts:['地震','氣候變遷','颱風','洪水'], ans:1 },
+        { q:'骨折時應先做什麼？', opts:['繼續行走','固定並送醫','按摩','冰敷後繼續活動'], ans:1 },
+        { q:'減少食物浪費最好的方法？', opts:['點很多菜','吃多少點多少','丟掉不喜歡的','全部打包'], ans:1 },
+      ],
+      4:[
+        { q:'台灣最早的鐵路是哪條？', opts:['高鐵','台鐵西部幹線','淡水線','阿里山鐵路'], ans:3 },
+        { q:'地球自轉一圈約多少時間？', opts:['12小時','24小時','30天','365天'], ans:1 },
+        { q:'選舉投票最低年齡是幾歲？', opts:['16','18','20','22'], ans:1 },
+        { q:'急救「CPR」的全名是？', opts:['心肺復甦術','人工呼吸','AED除顫','心臟按摩'], ans:0 },
+        { q:'保護個人資料最重要的是？', opts:['到處分享','設強密碼','用真名網路發言','存明顯位置'], ans:1 },
+      ]
+    }
+  }
+}
+
+
+// ── 教師點數管理 ──────────────────────────────────────────
+let _ptStudents = []
+
+async function loadPtStudents() {
+  const r = await api('/teacher-api/students')
+  _ptStudents = r.data || []
+  renderPtTable(_ptStudents)
+  // 如果是班導師，顯示整班加點按鈕
+  if (me && me.class_name) {
+    document.getElementById('bulk-btn').style.display = 'inline-block'
+    document.getElementById('bulk-class-label').textContent = me.class_name
+  }
+}
+
+function filterPtStudents(kw) {
+  const q = kw.toLowerCase()
+  const filtered = q ? _ptStudents.filter(s =>
+    s.name.toLowerCase().includes(q) || s.student_id.toLowerCase().includes(q)
+  ) : _ptStudents
+  renderPtTable(filtered)
+}
+
+function renderPtTable(data) {
+  const tbody = document.getElementById('pt-tbody')
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-2);">尚無學生資料</td></tr>'
+    return
+  }
+  tbody.innerHTML = data.map(s => {
+    const total = parseInt(s.total_points)
+    const color = total >= 0 ? 'var(--green)' : 'var(--red)'
+    let award = ''
+    if (total >= 20) award = `<span style="background:#fff3d6;color:#b8740a;padding:2px 8px;border-radius:12px;font-size:.72rem;font-weight:700;">🏅 嘉獎 x${Math.floor(total/20)}</span>`
+    else if (total <= -20) award = `<span style="background:#ffe3e1;color:#c0392b;padding:2px 8px;border-radius:12px;font-size:.72rem;font-weight:700;">⚠️ 警告 x${Math.floor(Math.abs(total)/20)}</span>`
+    else award = '<span style="color:var(--text-2);font-size:.8rem;">—</span>'
+
+    // 班導師的自己班學生才有整班加點，其他班只能單一加點
+    const isMyClass = me && me.class_name && s.class_name === me.class_name
+    return `<tr style="border-bottom:1px solid var(--border);">
+      <td style="padding:10px 14px;font-family:monospace;font-size:.85rem;">${escH(s.student_id)}</td>
+      <td style="padding:10px 14px;font-weight:600;">${escH(s.name)}</td>
+      <td style="padding:10px 14px;">${escH(s.class_name)}</td>
+      <td style="padding:10px 14px;font-weight:700;color:${color};">${total}</td>
+      <td style="padding:10px 14px;">${award}</td>
+      <td style="padding:10px 14px;">
+        <div style="display:flex;gap:5px;align-items:center;">
+          <input type="number" placeholder="點數" style="width:64px;border:1.5px solid var(--border);border-radius:6px;padding:5px 8px;font-size:.82rem;" id="quick-pt-${s.student_id}">
+          <button style="background:var(--accent);color:#fff;border:none;border-radius:6px;padding:5px 10px;font-size:.78rem;font-weight:600;cursor:pointer;"
+            onclick="quickPoint('${s.student_id}','${escH(s.name)}','${escH(s.class_name)}')">加</button>
+        </div>
+      </td>
+    </tr>`
+  }).join('')
+}
+
+async function quickPoint(sid, name, className) {
+  const pts = document.getElementById('quick-pt-'+sid)?.value
+  if (!pts) return
+  const r = await api('/teacher-api/points','POST',{student_id:sid, points:pts, reason:null})
+  if (r.success) {
+    document.getElementById('quick-pt-'+sid).value = ''
+    loadPtStudents()
+  } else alert(r.message || '加點失敗')
+}
+
+async function teacherAddPoint() {
+  const student_id = document.getElementById('pt-sid').value.trim()
+  const points = document.getElementById('pt-pts').value
+  const reason = document.getElementById('pt-reason').value.trim()
+  const alert_el = document.getElementById('pt-alert')
+  alert_el.style.display = 'none'
+  if (!student_id || !points) {
+    alert_el.textContent = '請填寫學號與點數'
+    alert_el.style.cssText = 'display:block;color:var(--red-color,#d93025);'
+    return
+  }
+  const r = await api('/teacher-api/points','POST',{student_id, points, reason:reason||null})
+  if (r.success) {
+    alert_el.textContent = '✅ 加點成功！'
+    alert_el.style.cssText = 'display:block;color:var(--green);'
+    document.getElementById('pt-sid').value = ''
+    document.getElementById('pt-pts').value = ''
+    document.getElementById('pt-reason').value = ''
+    loadPtStudents()
+  } else {
+    alert_el.textContent = r.message || '加點失敗'
+    alert_el.style.cssText = 'display:block;color:#d93025;'
+  }
+}
+
+async function teacherBulkPoint() {
+  const points = document.getElementById('pt-pts').value
+  const reason = document.getElementById('pt-reason').value.trim()
+  const alert_el = document.getElementById('pt-alert')
+  if (!points) {
+    alert_el.textContent = '請先在上方填寫點數'
+    alert_el.style.cssText = 'display:block;color:#d93025;'
+    return
+  }
+  if (!confirm(`確定要將 ${me.class_name} 所有學生各加 ${points} 點？`)) return
+  const r = await api('/teacher-api/points/bulk','POST',{points, reason:reason||null})
+  if (r.success) {
+    alert_el.textContent = `✅ 整班加點完成！共 ${r.count} 位學生`
+    alert_el.style.cssText = 'display:block;color:var(--green);'
+    document.getElementById('pt-pts').value = ''
+    document.getElementById('pt-reason').value = ''
+    loadPtStudents()
+  } else {
+    alert_el.textContent = r.message || '加點失敗'
+    alert_el.style.cssText = 'display:block;color:#d93025;'
+  }
+}
+
+function escH(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+}
+function fmtDate(d) { return d ? String(d).slice(0,10) : '' }
+async function api(url, method='GET', body=null) {
+  const opts = { method, headers:{'Content-Type':'application/json'}, credentials:'include' }
+  if (body) opts.body = JSON.stringify(body)
+  const r = await fetch(url, opts)
+  return r.json()
+}
+
+// ── 登入 ──────────────────────────────────────────────────
+async function doLogin() {
+  const username = document.getElementById('login-user').value.trim()
+  const password = document.getElementById('login-pass').value.trim()
+  const err = document.getElementById('login-err')
+  err.style.display='none'
+  const r = await api('/teacher-api/login','POST',{username,password})
+  if (r.success) {
+    me = r.teacher
+    initApp()
+  } else {
+    err.textContent = r.message || '登入失敗'
+    err.style.display='block'
+  }
+}
+
+async function initApp() {
+  document.getElementById('login-page').style.display='none'
+  document.getElementById('app').style.display='flex'
+  document.getElementById('user-display').textContent = me.name
+  document.getElementById('sb-name').textContent = me.name
+  document.getElementById('sb-class').textContent = me.class_name || '—'
+  await loadClassrooms()
+  showPage('classrooms')
+  loadQuiz()
+}
+
+async function logout() {
+  await api('/teacher-api/logout','POST')
+  location.reload()
+}
+
+// ── 頁面切換 ──────────────────────────────────────────────
+function showPage(name, el) {
+  document.querySelectorAll('.page-section').forEach(p=>p.classList.remove('active'))
+  document.querySelectorAll('.sidebar-item').forEach(i=>i.classList.remove('active'))
+  document.getElementById('page-'+name)?.classList.add('active')
+  if (el) el.classList.add('active')
+  if (msgInterval) { clearInterval(msgInterval); msgInterval=null }
+  if (name==='points') loadPtStudents()
+}
+
+function showClassroomDetail(id) {
+  currentClassroomId = id
+  const c = classrooms.find(x=>x.id===id)
+  document.getElementById('detail-title').textContent = c?.name || '課堂'
+  document.getElementById('detail-code').textContent = c?.code || ''
+  document.querySelectorAll('.page-section').forEach(p=>p.classList.remove('active'))
+  document.querySelectorAll('.classroom-item').forEach(i=>i.classList.remove('active'))
+  document.getElementById('page-classroom-detail').classList.add('active')
+  document.querySelectorAll(`.classroom-item[data-id="${id}"]`).forEach(i=>i.classList.add('active'))
+  loadAssignments()
+  loadMembers()
+  loadMessages()
+  msgInterval = setInterval(loadMessages, 8000)
+}
+
+// ── 課堂管理 ──────────────────────────────────────────────
+async function loadClassrooms() {
+  const r = await api('/teacher-api/classrooms')
+  classrooms = r.data || []
+  renderClassrooms()
+  renderSidebarClassrooms()
+}
+
+function renderClassrooms() {
+  const el = document.getElementById('classrooms-grid')
+  if (classrooms.length === 0) {
+    el.innerHTML = '<div style="color:var(--text-2);text-align:center;padding:48px 0;">尚未建立任何課堂，點右上角「建立課堂」開始</div>'
+    return
+  }
+  el.innerHTML = classrooms.map(c=>`
+    <div class="classroom-card" onclick="showClassroomDetail(${c.id})">
+      <div class="classroom-avatar">🏫</div>
+      <div style="flex:1;">
+        <div class="classroom-name">${escH(c.name)}</div>
+        <div class="classroom-meta">代碼：<span style="font-family:monospace;font-weight:700;">${escH(c.code)}</span></div>
+      </div>
+      <button class="btn-danger" onclick="event.stopPropagation();deleteClassroom(${c.id})">刪除</button>
+    </div>`).join('')
+}
+
+function renderSidebarClassrooms() {
+  document.getElementById('classroom-list-sidebar').innerHTML = classrooms.map(c=>`
+    <div class="classroom-item" data-id="${c.id}" onclick="showClassroomDetail(${c.id})">
+      <span>${escH(c.name)}</span>
+      <span class="classroom-code">${escH(c.code)}</span>
+    </div>`).join('')
+}
+
+function openCreateClassroom() {
+  document.getElementById('new-classroom-name').value=''
+  openModal('modal-create-classroom')
+}
+
+async function createClassroom() {
+  const name = document.getElementById('new-classroom-name').value.trim()
+  if (!name) return
+  await api('/teacher-api/classrooms','POST',{name})
+  closeModal('modal-create-classroom')
+  await loadClassrooms()
+}
+
+async function deleteClassroom(id) {
+  if (!confirm('確定刪除此課堂？')) return
+  await api('/teacher-api/classrooms/'+id,'DELETE')
+  await loadClassrooms()
+  showPage('classrooms')
+}
+
+// ── 作業 ──────────────────────────────────────────────────
+async function loadAssignments() {
+  const r = await api('/teacher-api/classrooms/'+currentClassroomId+'/assignments')
+  const list = r.data || []
+  document.getElementById('assignments-list').innerHTML = list.length === 0
+    ? '<div style="color:var(--text-2);text-align:center;padding:24px;">尚未布置作業</div>'
+    : list.map(a=>`
+      <div class="assignment-row">
+        <div class="a-icon">📝</div>
+        <div>
+          <div class="a-title">${escH(a.title)}</div>
+          <div class="a-meta">${a.due_date ? '截止：'+fmtDate(a.due_date) : '無截止日'} · ${escH(a.description||'無說明')}</div>
+        </div>
+        <div class="a-actions">
+          <button class="btn-primary" style="font-size:.78rem;padding:6px 12px;" onclick="openGrade(${a.id},'${escH(a.title)}')">批改</button>
+        </div>
+      </div>`).join('')
+}
+
+function openAddAssignment() {
+  document.getElementById('a-title').value=''
+  document.getElementById('a-desc').value=''
+  document.getElementById('a-due').value=''
+  openModal('modal-add-assignment')
+}
+
+async function addAssignment() {
+  const title = document.getElementById('a-title').value.trim()
+  const description = document.getElementById('a-desc').value.trim()
+  const due_date = document.getElementById('a-due').value
+  if (!title) return
+  await api('/teacher-api/classrooms/'+currentClassroomId+'/assignments','POST',{title,description,due_date})
+  closeModal('modal-add-assignment')
+  loadAssignments()
+}
+
+async function openGrade(assignmentId, title) {
+  document.getElementById('grade-title').textContent = '批改：'+title
+  const r = await api('/teacher-api/assignments/'+assignmentId+'/submissions')
+  const subs = r.data || []
+  document.getElementById('submissions-list').innerHTML = subs.length === 0
+    ? '<div style="color:var(--text-2);text-align:center;padding:20px;">尚無學生繳交</div>'
+    : subs.map(s=>`
+      <div class="sub-row">
+        <div style="flex:1;">
+          <div style="font-weight:600;font-size:.88rem;">${escH(s.name)} (${escH(s.class_name)})</div>
+          <div style="font-size:.8rem;color:var(--text-2);margin-top:2px;">${escH(s.content||'（未填寫內容）')}</div>
+          ${s.feedback ? `<div style="font-size:.78rem;color:var(--green);margin-top:2px;">💬 ${escH(s.feedback)}</div>` : ''}
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <input type="number" min="0" max="100" placeholder="分數" value="${s.score||''}"
+            style="width:60px;border:1.5px solid var(--border);border-radius:6px;padding:4px 8px;font-size:.84rem;"
+            id="score-${s.student_id}">
+          <input type="text" placeholder="評語" value="${escH(s.feedback||'')}"
+            style="width:100px;border:1.5px solid var(--border);border-radius:6px;padding:4px 8px;font-size:.84rem;"
+            id="fb-${s.student_id}">
+          <button class="btn-primary" style="font-size:.74rem;padding:5px 10px;"
+            onclick="saveGrade(${assignmentId},'${s.student_id}')">儲存</button>
+          ${s.score!=null ? `<span class="score-badge">${s.score}分</span>` : ''}
+        </div>
+      </div>`).join('')
+  openModal('modal-grade')
+}
+
+async function saveGrade(assignmentId, studentId) {
+  const score = document.getElementById('score-'+studentId)?.value
+  const feedback = document.getElementById('fb-'+studentId)?.value
+  await api('/teacher-api/assignments/'+assignmentId+'/grade','PUT',{student_id:studentId,score,feedback})
+  openGrade(assignmentId, document.getElementById('grade-title').textContent.replace('批改：',''))
+}
+
+// ── 成員 ──────────────────────────────────────────────────
+async function loadMembers() {
+  const r = await api('/teacher-api/classrooms/'+currentClassroomId+'/members')
+  const list = r.data || []
+  document.getElementById('members-list').innerHTML = list.length === 0
+    ? '<div style="color:var(--text-2);text-align:center;padding:20px;">尚未加入任何學生</div>'
+    : list.map(m=>`
+      <div class="member-row">
+        <div class="member-avatar">${escH(m.name?.slice(-1)||'生')}</div>
+        <div style="flex:1;">
+          <div class="member-name">${escH(m.name)}</div>
+          <div class="member-class">${escH(m.class_name)} · 學號 ${escH(m.student_id)}</div>
+        </div>
+        <button class="btn-danger" onclick="removeMember('${m.student_id}')">移除</button>
+      </div>`).join('')
+}
+
+function openAddMember() {
+  document.getElementById('new-member-sid').value=''
+  openModal('modal-add-member')
+}
+
+async function addMember() {
+  const student_id = document.getElementById('new-member-sid').value.trim()
+  if (!student_id) return
+  const r = await api('/teacher-api/classrooms/'+currentClassroomId+'/members','POST',{student_id})
+  if (!r.success) { alert(r.message||'加入失敗，請確認學號是否存在'); return }
+  closeModal('modal-add-member')
+  loadMembers()
+}
+
+async function removeMember(sid) {
+  if (!confirm('確定移除此學生？')) return
+  await api('/teacher-api/classrooms/'+currentClassroomId+'/members/'+sid,'DELETE')
+  loadMembers()
+}
+
+// ── 留言 ──────────────────────────────────────────────────
+async function loadMessages() {
+  const r = await api('/teacher-api/classrooms/'+currentClassroomId+'/messages')
+  const msgs = r.data || []
+  const el = document.getElementById('msg-list')
+  el.innerHTML = msgs.map(m=>`
+    <div class="msg-item">
+      <div class="msg-avatar">${m.sender_role==='teacher'?'師':escH(m.sender_name?.slice(-1)||'生')}</div>
+      <div class="msg-bubble" style="${m.sender_role==='teacher'?'background:var(--accent-soft);':''}">
+        <div class="msg-meta">${m.sender_role==='teacher'?'👩‍🏫 ':''}<strong>${escH(m.sender_name)}</strong> · ${fmtDate(m.created_at)}</div>
+        <div class="msg-text">${escH(m.content)}</div>
+      </div>
+    </div>`).join('')
+  el.scrollTop = el.scrollHeight
+}
+
+async function sendMsg() {
+  const input = document.getElementById('msg-input')
+  const content = input.value.trim()
+  if (!content) return
+  input.value=''
+  await api('/teacher-api/classrooms/'+currentClassroomId+'/messages','POST',{content})
+  loadMessages()
+}
+
+// ── 題庫 ──────────────────────────────────────────────────
+function loadQuiz() {
+  const grade = parseInt(document.getElementById('q-grade').value)
+  const subject = document.getElementById('q-subject').value
+  const range = parseInt(document.getElementById('q-range').value)
+  const qs = QUIZ_DB[subject]?.[grade]?.[range] || []
+  const el = document.getElementById('quiz-list')
+  if (qs.length===0) { el.innerHTML='<div style="color:var(--text-2);padding:20px;">此範圍暫無題目</div>'; return }
+  el.innerHTML = qs.map((q,i)=>`
+    <div class="question-card">
+      <div class="q-number">第 ${i+1} 題</div>
+      <div class="q-text">${escH(q.q)}</div>
+      <div class="q-options">
+        ${q.opts.map((opt,j)=>`
+          <div class="q-opt ${j===q.ans?'correct':''}">
+            ${String.fromCharCode(65+j)}. ${escH(opt)} ${j===q.ans?'✓':''}
+          </div>`).join('')}
+      </div>
+    </div>`).join('')
+}
+
+// ── 密碼修改 ──────────────────────────────────────────────
+function changePassword() { openModal('modal-pw') }
+async function doChangePw() {
+  const old_password = document.getElementById('old-pw').value
+  const new_password = document.getElementById('new-pw').value
+  const err = document.getElementById('pw-err')
+  const r = await api('/teacher-api/change-password','PUT',{old_password,new_password})
+  if (r.success) { closeModal('modal-pw'); alert('密碼已修改成功') }
+  else { err.textContent=r.message||'修改失敗'; err.style.display='block' }
+}
+
+// ── Modal 工具 ─────────────────────────────────────────────
+function openModal(id) { document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden' }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); document.body.style.overflow='' }
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{ if(e.target===o) closeModal(o.id) }))
+
+// ── 初始化：先嘗試恢復 session ────────────────────────────
+;(async()=>{
+  const r = await api('/teacher-api/me')
+  if (r.success) { me = r.teacher; initApp() }
+})()
+</script>
+</body>
+</html>
